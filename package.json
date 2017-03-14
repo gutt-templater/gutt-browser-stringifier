@@ -1,6 +1,6 @@
 {
   "name": "gutt-browser-stringifier",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -15,10 +15,14 @@
     "name": "Aleksei Chikin",
     "email": "mail@makingoff.name"
   },
+  "repository": "https://github.com/makingoff/gutt-browser-stringifier",
   "devDependencies": {
     "chai": "^3.5.0",
     "chai-as-promised": "^5.3.0",
     "mocha": "^2.5.3"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "gutt": "0.0.4"
+  }
 }
