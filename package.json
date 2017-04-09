@@ -1,6 +1,6 @@
 {
   "name": "gutt-browser-stringifier",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -23,6 +23,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "gutt": "0.0.4"
+    "gutt": "0.0.5"
   }
 }
