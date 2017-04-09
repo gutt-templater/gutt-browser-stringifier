@@ -195,7 +195,7 @@ function expression (tree) {
 
   switch (tree.type) {
     case 'var':
-      if (~consts.indexOf(tree.value)) return tree.value
+      if (tree.type === 'var' && tree.value === 'children') return '___children'
 
       keys = [{type: 'str', value: tree.value}].concat(tree.keys);
 
@@ -204,6 +204,9 @@ function expression (tree) {
       }).join('')
 
       return str
+
+    case 'const':
+      return tree.value
 
     case 'str':
       return expression('"' + tree.value + '"')

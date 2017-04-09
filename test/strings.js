@@ -66,31 +66,31 @@ describe ('JS string functions', function () {
   })
 
   it ('str_pad for right side with param', function () {
-    return parse('<component>{ str_pad(\'string\', 10, \'~\', STRPADRIGHT) }</component>')
+    return parse('<component>{ str_pad_right(\'string\', 10, \'~\') }</component>')
       .should.eventually.deep.equal(['string~~~~'])
   })
 
   it ('str_pad for left side', function () {
-    return parse('<component>{ str_pad(\'string\', 10, \'~\', STRPADLEFT) }</component>')
+    return parse('<component>{ str_pad_left(\'string\', 10, \'~\') }</component>')
       .should.eventually.deep.equal(['~~~~string'])
   })
 
   it ('str_pad for both sides', function () {
-    return parse('<component>{ str_pad(\'string\', 10, \'~\', STRPADBOTH) }</component>')
+    return parse('<component>{ str_pad_both(\'string\', 10, \'~\') }</component>')
       .should.eventually.deep.equal(['~~string~~'])
   })
 
   it ('str_pad with string longer than length param', function () {
-    return parse('<component>{ str_pad(\'accessabillity\', 10, \'~\', STRPADBOTH) }</component>')
+    return parse('<component>{ str_pad_both(\'accessabillity\', 10, \'~\') }</component>')
       .should.eventually.deep.equal(['accessabillity'])
   })
 
   it ('str_split returns array with origin string', function () {
     var template =
       '<component>' +
-      '<variable name={arr} value={str_split(\'string\', \'wrong splitter\') } />' +
-      '<for-each item={letter} from={arr}>' +
-      '{ letter },' +
+      '<variable name={$arr} value={str_split(\'string\', \'wrong splitter\') } />' +
+      '<for-each item={$letter} from={$arr}>' +
+      '{ $letter },' +
       '</for-each>' +
       '</component>'
     var result = [
@@ -104,9 +104,9 @@ describe ('JS string functions', function () {
   it ('str_split with empty splitter, returns array of letter', function () {
     var template =
       '<component>' +
-      '<variable name={arr} value={str_split(\'string\', \'\') } />' +
-      '<for-each item={letter} from={arr}>' +
-      '{ letter },' +
+      '<variable name={$arr} value={str_split(\'string\', \'\') } />' +
+      '<for-each item={$letter} from={$arr}>' +
+      '{ $letter },' +
       '</for-each>' +
       '</component>'
     var result = [
@@ -130,9 +130,9 @@ describe ('JS string functions', function () {
   it ('str_split with not empty splitter, returns array of substrings', function () {
     var template =
       '<component>' +
-      '<variable name={arr} value={str_split(\'London is The Capital of Greate Britan\', \' \') } />' +
-      '<for-each item={letter} from={arr}>' +
-      '{ letter }-' +
+      '<variable name={$arr} value={str_split(\'London is The Capital of Greate Britan\', \' \') } />' +
+      '<for-each item={$letter} from={$arr}>' +
+      '{ $letter }-' +
       '</for-each>' +
       '</component>'
     var result = [

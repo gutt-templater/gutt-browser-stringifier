@@ -64,6 +64,15 @@ module.exports = {
     '    collect = collect.substr(0, len);\n' +
     '    return collect;\n' +
     '  }\n' +
+    '  function str_pad_left(str, len, sub) {\n' +
+    '    return str_pad(str, len, sub, STRPADLEFT);\n' +
+    '  }\n' +
+    '  function str_pad_right(str, len, sub) {\n' +
+    '    return str_pad(str, len, sub, STRPADRIGHT);\n' +
+    '  }\n' +
+    '  function str_pad_both(str, len, sub) {\n' +
+    '    return str_pad(str, len, sub, STRPADBOTH);\n' +
+    '  }\n' +
     '  function str_pad(str, len, sub, type) {\n' +
     '    if (typeof type === \'undefined\') type = STRPADRIGHT;\n' +
     '    var half = \'\', pad_to_go;\n' +

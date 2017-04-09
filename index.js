@@ -336,17 +336,18 @@ function prepareComponentName (name) {
 
 function handleImportStatement (node) {
   var params = extractValuesFromAttrs(node.attrs, ['name', 'from'])
+  var name = handleNode(params.name).match(/^([\'\"])(.*)(\1)$/)[2]
 
-  if (!~params.name.value.indexOf('-')) {
+  if (!~name.indexOf('-')) {
     throw new ParseError('Component name must contain dash (`-`) in the name', {
       line: params.name.line,
       column: params.name.column
     })
   }
 
-  importedComponents.push(params.name.value)
+  importedComponents.push(name)
 
-  return 'var __component__' + prepareComponentName(params.name.value) +
+  return '__state["' + name + '"]' +
     ' = require(' + handleNode(params.from) + ');\n'
 }
 
@@ -368,7 +369,7 @@ function handleComponent (node) {
 
   attrs = attrsHandler(fragment, node.attrs)
   attrsOutput = 'attrs' + fragment.id
-  componentName = '__component__' + prepareComponentName(node.name)
+  componentName = '__state["' + (node.name) + '"]'
 
   if (node.isSingle || ~singleTags.indexOf(node.name)) {
     return attrs + 'var __result' + node.id + ' = ' + componentName + '(' + attrsOutput + ', []);\n' +
@@ -498,6 +499,21 @@ function handleDefaultStatementNode (node) {
   return handleDefaultStatement(node)
 }
 
+function handleTemplateStatement (node) {
+  var params = extractValuesFromAttrs(node.attrs, ['name'])
+  var name = handleNode(params.name)
+  var children = 'var __children' + node.id + ' = [];\n'
+
+  if (!node.isSingle && node.firstChild) {
+    children +=
+      '(function (__children) {\n' +
+      handleTemplate(node.firstChild) +
+      '})(__children' + node.id + ');\n'
+  }
+
+  return children + name + ' = __children' + node.id + ';\n'
+}
+
 function handleTag (node) {
   switch (node.name) {
     case 'param':
@@ -545,6 +561,9 @@ function handleTag (node) {
     case 'apply-default':
       return handleDefaultStatement(node)
 
+    case 'template':
+      return handleTemplateStatement(node)
+
     default:
       if (~importedComponents.indexOf(node.name)) {
         return handleComponent(node)
@@ -574,11 +593,19 @@ function handleString (node) {
 }
 
 function logicNodeHandler (node) {
-  if (node.type === 'logic-node' && node.expr.type === 'logic' && node.expr.expr.type === 'var' && node.expr.expr.value === 'children') {
-    return '___children.forEach(function (__item) { __children.push(__item); });\n'
+  var expr = logicHandler(node.expr)
+
+  if (node.type === 'logic-node' && node.expr.type === 'logic' && node.expr.expr.type === 'var') {
+    return (
+      'if (typeof ' + expr + ' === \'object\' && Object.prototype.toString.call(' + expr + ') === \'[object Array]\') {\n' +
+      '  ' + expr + '.forEach(function (__item) { __children.push(__item); });\n' +
+      '} else {\n' +
+      '  __children.push(' + expr + ');\n' +
+      '}'
+    )
   }
 
-  return '__children.push(' + logicHandler(node.expr) + ');\n'
+  return '__children.push(' + expr + ');\n'
 }
 
 function handleNode (node) {
