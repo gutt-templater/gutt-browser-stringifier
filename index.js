@@ -664,6 +664,11 @@ function handleTemplate (node) {
 }
 
 module.exports = function (template) {
+  mapAttrFragments = {}
+  mapCurrentFragmentNode = {}
+  importedComponents = []
+  switchMarker = {}
+
   var templateResult = handleTemplate(template)
 
   return prefix + templateResult + postfix
