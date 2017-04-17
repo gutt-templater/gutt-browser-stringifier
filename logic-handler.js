@@ -17,14 +17,13 @@ function handleParams (params) {
 function handleFunction (tree) {
   var strParam
   var funcName
-  var params
+  var params = handleParams(tree.attrs)
 
   funcName =
     (tree.value.type === 'var' && !tree.value.keys.length ? tree.value.value : expression(tree.value))
 
   switch (funcName) {
     case 'str_sub':
-      params = handleParams(tree.attrs)
       strParam = params.shift()
 
       if (params[1]) {
@@ -33,108 +32,77 @@ function handleFunction (tree) {
 
       return strParam + '.substr(' + params.join(', ') + ')'
     case 'str_len':
-      params = handleParams(tree.attrs)
-      strParam = params.shift()
-
-      return strParam + '.length'
+      return params.shift() + '.length'
     case 'str_pos':
-      params = handleParams(tree.attrs)
       strParam = params.shift()
 
       return strParam + '.indexOf(' + params.join(', ') + ')'
     case 'str_split':
-      params = handleParams(tree.attrs)
       strParam = params.shift()
 
       return strParam + '.split(' + params.join(', ') + ')'
     case 'str_lower':
-      params = handleParams(tree.attrs)
-      strParam = params.shift()
-
-      return strParam + '.toLowerCase()'
+      return params.shift() + '.toLowerCase()'
     case 'str_upper':
-      params = handleParams(tree.attrs)
-      strParam = params.shift()
-
-      return strParam + '.toUpperCase()'
+      return params.shift() + '.toUpperCase()'
     case 'str_trim':
-      params = handleParams(tree.attrs)
-      strParam = params.shift()
-
-      return strParam + '.trim()'
+      return params.shift() + '.trim()'
     case 'str_ltrim':
-      params = handleParams(tree.attrs)
-      strParam = params.shift()
-
-      return strParam + '.replace(/^[\\s\\n\\t]*/, \'\')'
+      return params.shift() + '.replace(/^[\\s\\n\\t]*/, \'\')'
     case 'str_rtrim':
-      params = handleParams(tree.attrs)
-      strParam = params.shift()
-
-      return strParam + '.replace(/[\\s\\n\\t]*$/, \'\')'
+      return params.shift() + '.replace(/[\\s\\n\\t]*$/, \'\')'
     case 'str_urlencode':
-      return 'encodeURIComponent(' + handleParams(tree.attrs).join(', ') + ')'
+      return 'encodeURIComponent(' + params.join(', ') + ')'
     case 'str_urldecode':
-      return 'decodeURIComponent(' + handleParams(tree.attrs).join(', ') + ')'
+      return 'decodeURIComponent(' + params.join(', ') + ')'
 
     case 'arr_keys':
-      return 'Object.keys(' + handleParams(tree.attrs).join(', ') + ')'
+      return 'Object.keys(' + params.join(', ') + ')'
     case 'arr_values':
-      return 'arr_values(' + handleParams(tree.attrs).join(', ') + ')'
+      return 'arr_values(' + params.join(', ') + ')'
     case 'arr_pop':
-      params = handleParams(tree.attrs)
-      strParam = params.shift()
-
-      return strParam + '.pop()'
+      return params.shift() + '.pop()'
     case 'arr_shift':
-      params = handleParams(tree.attrs)
-      strParam = params.shift()
-
-      return strParam + '.shift()'
+      return params.shift() + '.shift()'
     case 'arr_slice':
-      params = handleParams(tree.attrs)
       strParam = params.shift()
       if (params[1]) params[1] = parseInt(params[0], 10) + parseInt(params[1], 10)
 
       return strParam + '.slice(' + params.join(', ') + ')'
+    case 'arr_join':
+      strParam = params.shift()
 
+      return strParam + '.join(' + (params[0] ? params[0] : '\'\'') + ')'
     case 'num_int':
-      params = handleParams(tree.attrs)
-      strParam = params.shift()
-
-      return 'parseInt(' + strParam + ', 10)'
+      return 'parseInt(' + params.shift() + ', 10)'
     case 'num_float':
-      params = handleParams(tree.attrs)
-      strParam = params.shift()
-
-      return 'parseFloat(' + strParam + ')'
+      return 'parseFloat(' + params.shift() + ')'
     case 'num_pow':
-      return 'Math.pow(' + handleParams(tree.attrs).join(', ') + ')'
+      return 'Math.pow(' + params.join(', ') + ')'
     case 'num_abs':
-      return 'Math.abs(' + handleParams(tree.attrs).join(', ') + ')'
+      return 'Math.abs(' + params.join(', ') + ')'
     case 'num_sin':
-      return 'Math.sin(' + handleParams(tree.attrs).join(', ') + ')'
+      return 'Math.sin(' + params.join(', ') + ')'
     case 'num_cos':
-      return 'Math.cos(' + handleParams(tree.attrs).join(', ') + ')'
+      return 'Math.cos(' + params.join(', ') + ')'
     case 'num_tan':
-      return 'Math.tan(' + handleParams(tree.attrs).join(', ') + ')'
+      return 'Math.tan(' + params.join(', ') + ')'
     case 'num_acos':
-      return 'Math.acos(' + handleParams(tree.attrs).join(', ') + ')'
+      return 'Math.acos(' + params.join(', ') + ')'
     case 'num_asin':
-      return 'Math.asin(' + handleParams(tree.attrs).join(', ') + ')'
+      return 'Math.asin(' + params.join(', ') + ')'
     case 'num_atan':
-      return 'Math.atan(' + handleParams(tree.attrs).join(', ') + ')'
+      return 'Math.atan(' + params.join(', ') + ')'
     case 'num_round':
-      params = handleParams(tree.attrs)
       strParam = params.shift()
 
       return '(' + strParam + ' < 0 ? Math.round(' + strParam + ') : Math.round(' + strParam + '))'
     case 'num_rand':
       return 'Math.random()'
     case 'num_sqrt':
-      return 'Math.sqrt(' + handleParams(tree.attrs).join(', ') + ')'
+      return 'Math.sqrt(' + params.join(', ') + ')'
     default:
-      return funcName + '(' + handleParams(tree.attrs).join(', ') + ')'
+      return funcName + '(' + params.join(', ') + ')'
   }
 }
 

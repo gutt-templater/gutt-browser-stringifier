@@ -545,4 +545,14 @@ describe ('JS array functions', function () {
 
     return parse(template).should.eventually.deep.equal(['c'])
   })
+
+  it ('arr_join', function () {
+    var template =
+      '<component>' +
+      '<variable name={$arr}  value={[1, 2, 3, 4, 5, 6, 7] } />' +
+      '{ arr_join($arr, " ") }' +
+      '</component>'
+
+    return parse(template).should.eventually.deep.equal(['1 2 3 4 5 6 7'])
+  })
 })
