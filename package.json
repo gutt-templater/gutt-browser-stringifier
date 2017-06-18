@@ -1,6 +1,9 @@
 {
   "name": "gutt-browser-stringifier",
-  "version": "0.0.5",
+  "title": "Gutt browser stringifier",
+  "CLISupport": true,
+  "ext": "js",
+  "version": "0.0.6",
   "description": "",
   "main": "index.js",
   "scripts": {
