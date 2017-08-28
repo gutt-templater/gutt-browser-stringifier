@@ -577,6 +577,13 @@ function handleComment () {
   return ''
 }
 
+function prepareText (text) {
+  return text
+    .replace(/\n/g, '\\n')
+    .replace(/\'/g, '\\\'')
+    .replace(/"/g, '\\"')
+}
+
 function handleText (node) {
   if (node.parentNode.name === 'switch' && node.text.trim().length) {
     throw new ParseError('Text node must not be placed inside <switch />', {
@@ -585,17 +592,17 @@ function handleText (node) {
     });
   }
 
-  return '__children.push(\'' + node.text.replace(/\n/g, '\\n').replace(/\'/g, '\\\'') + '\')\n'
+  return '__children.push(\'' + prepareText(node.text) + '\')\n'
 }
 
 function handleString (node) {
-  return '"' + node.value.replace(/\n/g, '\\n').replace(/\'/g, '\\\'') + '"'
+  return '"' + prepareText(node.value) + '"'
 }
 
 function logicNodeHandler (node) {
-  var expr = logicHandler(node.expr)
+  var expr = logicHandler(node)
 
-  if (node.type === 'logic-node' && node.expr.type === 'logic' && node.expr.expr.type === 'var') {
+  if (node.type === 'logic-node' && node.expr.type === 'var') {
     return (
       'if (typeof ' + expr + ' === \'object\' && Object.prototype.toString.call(' + expr + ') === \'[object Array]\') {\n' +
       '  ' + expr + '.forEach(function (__item) { __children.push(__item); });\n' +
