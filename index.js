@@ -503,7 +503,7 @@ function handleDefaultStatementNode (node, cwd) {
   return handleDefaultStatement(node, cwd)
 }
 
-function handleTemplateStatement (node) {
+function handleTemplateStatement (node, cwd) {
   var params = extractValuesFromAttrs(node.attrs, ['name'])
   var name = handleNode(params.name, cwd)
   var children = 'var __children' + node.id + ' = [];\n'
@@ -581,6 +581,13 @@ function handleComment () {
   return ''
 }
 
+function prepareText (text) {
+  return text
+    .replace(/\n/g, '\\n')
+    .replace(/\'/g, '\\\'')
+    .replace(/"/g, '\\"')
+}
+
 function handleText (node) {
   if (node.parentNode.name === 'switch' && node.text.trim().length) {
     throw new ParseError('Text node must not be placed inside <switch />', {
@@ -589,11 +596,11 @@ function handleText (node) {
     });
   }
 
-  return '__children.push(\'' + node.text.replace(/\n/g, '\\n').replace(/\'/g, '\\\'') + '\')\n'
+  return '__children.push(\'' + prepareText(node.text) + '\')\n'
 }
 
 function handleString (node) {
-  return '"' + node.value.replace(/\n/g, '\\n').replace(/\'/g, '\\\'') + '"'
+  return '"' + prepareText(node.value) + '"'
 }
 
 function logicNodeHandler (node, cwd) {
