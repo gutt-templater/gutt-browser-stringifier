@@ -3,7 +3,7 @@
   "title": "Gutt browser stringifier",
   "CLISupport": true,
   "ext": "js",
-  "version": "0.0.8",
+  "version": "0.1.1",
   "description": "",
   "main": "index.js",
   "scripts": {
