@@ -3,7 +3,7 @@
   "title": "Gutt browser stringifier",
   "CLISupport": true,
   "ext": "js",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -26,6 +26,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "gutt": "0.0.5"
+    "gutt": "0.1.2"
   }
 }
