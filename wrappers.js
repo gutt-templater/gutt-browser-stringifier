@@ -9,7 +9,6 @@ module.exports = {
     '})(function () {\n' +
     '  var MKARR_OPEN = 2 << 1;\n' +
     '  var MKARR_CLOSE = 1 << 1;\n' +
-    '  var path = require(\'path\');\n' +
     '  function mkArr(start, end, flag) {\n' +
     '    var arr = [], i;\n' +
     '    if (flag & MKARR_OPEN) {\n' +
