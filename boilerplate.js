@@ -137,6 +137,7 @@ module.exports = function (ctx) {
 	var layers = {\n\
 		0: createLayer()\n\
 	}\n\
+	var avatarTextarea = document.createElement(\'textarea\')\n\
 \n\
 	function createLayer() {\n\
 		return {\n\
@@ -328,7 +329,8 @@ module.exports = function (ctx) {
 	}\n\
 \n\
 	function createTextElement(content) {\n\
-		return document.createTextNode(content)\n\
+		avatarTextarea.innerHTML = content\n\
+		return document.createTextNode(avatarTextarea.value)\n\
 	}\n\
 \n\
 	function createAnchor(layer, index) {\n\
