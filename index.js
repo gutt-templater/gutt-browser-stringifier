@@ -16,54 +16,65 @@ function extractValuesFromAttrs(attrs, fields) {
 
 function handleDefaultTag(node, template, layer, ctx) {
   if (typeof ctx.tags[layer] === 'undefined') {
-    ctx.tags[layer] = 0
+    ctx.tags[layer] = -1
     ctx.dynamicAttributes[layer] = {}
   }
 
-  var index = ctx.tags[layer]++
+  var index = ++ctx.tags[layer]
   var staticAttributes = []
-
-  if (typeof ctx.dynamicAttributes[layer][index] === 'undefined') {
-    ctx.dynamicAttributes[layer][index] = []
-  }
 
   node.attrs.forEach(function (attr) {
     if (attr.name.type === 'string') {
       if (attr.value === null) {
-        staticAttributes.push(handleNode(attr.name, template, layer, ctx) + ': ""')
+        staticAttributes.push(
+          templates.createObjectItem(
+            handleNode(attr.name, template, layer, ctx),
+            '""'
+          )
+        )
       } else if (attr.value.type === 'string') {
-        staticAttributes.push(handleNode(attr.name, template, layer, ctx) + ': ' + handleNode(attr.value, template, layer, ctx))
+        staticAttributes.push(
+          templates.createObjectItem(
+            handleNode(attr.name, template, layer, ctx),
+            handleNode(attr.value, template, layer, ctx)
+          )
+        )
       } else {
+        if (typeof ctx.dynamicAttributes[layer][index] === 'undefined') {
+          ctx.dynamicAttributes[layer][index] = []
+        }
+
         ctx.dynamicAttributes[layer][index].push(
-          handleNode(attr.name, template, layer, ctx) + ': ' + handleNode(attr.value, template, layer, ctx)
+          templates.createObjectItem(
+            handleNode(attr.name, template, layer, ctx),
+            handleNode(attr.value, template, layer, ctx)
+          )
         )
       }
     }
   })
 
-  let children = walk(node.firstChild, template, layer, ctx)
+  var children = walk(node.firstChild, template, layer, ctx)
+  var hasDynamicAttributes = typeof ctx.dynamicAttributes[layer][index] !== 'undefined' && ctx.dynamicAttributes[layer][index].length > 0
 
-  if (ctx.dynamicAttributes[layer][index].length) {
-    if (typeof ctx.attributeInstructions[layer] === 'undefined') {
-      ctx.attributeInstructions[layer] = []
-    }
+  if (hasDynamicAttributes) {
+    var nextLayer = ++ctx.index
+    var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
 
-    ctx.attributeInstructions[layer].push(
-      templates.handleAttributes(
-        layer,
-        index,
-        ctx.dynamicAttributes[layer][index].join(',\n')
-      )
+    ctx.templates[template] += templates.chainStatePush(nextLayer)
+    ctx.executeInstructions[nextLayer] = templates.handleAttributes(
+      layer,
+      index,
+      ctx.dynamicAttributes[layer][index].join(',\n')
     )
-
-    ctx.dynamicNodes[layer] = 'ATTRIBUTES'
+    ctx.dynamicNodes[nextLayer] = 'EXECUTE'
   }
 
   return templates.createElement(
     node.name,
     staticAttributes.join(', '),
     children,
-    ctx.dynamicAttributes[layer][index].length,
+    hasDynamicAttributes,
     layer,
     index
   )
@@ -95,9 +106,6 @@ function handleComponent(node, template, layer, ctx) {
       handleNode(attr.value, template, nextLayer, ctx)
     ))
   })
-
-  if (node.firstChild) {
-  }
 
   ctx.templates[template] += templates.chainStatePush(nextLayer)
   ctx.componentInstuctions[nextLayer] = templates.componentInstuction(nextLayer, node.name, params.join(','), childrenLayer)
@@ -235,28 +243,19 @@ function handleForEachStatement(node, template, layer, ctx) {
 }
 
 function handleAttributeStatement(node, template, layer, ctx) {
-  var nextLayer = ++ctx.index
   var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
-  var currentLayer = layer
+  var index = ctx.tags[layer]
 
-  while (typeof dynamicAttributes === 'undefined' && currentLayer > -1) {
-    dynamicAttributes = ctx.dynamicAttributes[--currentLayer]
+  if (typeof ctx.dynamicAttributes[layer][index] === 'undefined') {
+    ctx.dynamicAttributes[layer][index] = []
   }
 
-  ctx.templates[template] += templates.chainStatePush(nextLayer)
-
-  var tagIndex = ctx.tags[currentLayer] - 1
-
-  ctx.executeInstructions[nextLayer] = templates.handleAttributes(
-    currentLayer,
-    tagIndex,
+  ctx.dynamicAttributes[layer][index].push(
     templates.createObjectItem(
-      handleNode(params.name, template, currentLayer, ctx),
-      handleNode(params.value, template, currentLayer, ctx)
+      handleNode(params.name, template, layer, ctx),
+      handleNode(params.value, template, layer, ctx)
     )
   )
-  ctx.dynamicNodes[currentLayer] = 'ATTRIBUTES'
-  ctx.dynamicNodes[nextLayer] = 'EXECUTE'
 
   return ''
 }
@@ -351,7 +350,6 @@ module.exports = function (ast, source, filepath) {
     templates: {},
     arrayInstructions: {},
     dynamicNodes: {},
-    attributeInstructions: {},
     dynamicAttributes: {},
     executeInstructions: {},
     imports: {},

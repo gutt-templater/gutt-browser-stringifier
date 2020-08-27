@@ -3,7 +3,6 @@ module.exports = function (ctx) {
 		templates = [],
 		arrayInstructions = [],
 		dynamicNodes = [],
-		attributeInstructions = [],
 		executeInstructions = [],
 		componentInstuctions = [],
 		imports = [],
@@ -45,16 +44,6 @@ module.exports = function (ctx) {
 		if (ctx.dynamicNodes.hasOwnProperty(field)) {
 			dynamicNodes.push(
 				field + ': ' + ctx.dynamicNodes[field]
-			)
-		}
-	}
-
-	for (field in ctx.attributeInstructions) {
-		if (ctx.attributeInstructions.hasOwnProperty(field)) {
-			attributeInstructions.push(
-				field + ': function (layer, data) {\n\
-					' + ctx.attributeInstructions[field].join('\n') + '\n\
-				}'
 			)
 		}
 	}
@@ -121,9 +110,6 @@ module.exports = function (ctx) {
 	}\n\
 	var arrayInstructions = {\n\
 ' + arrayInstructions.join(',\n') + '\n\
-	}\n\
-	var attributeInstructions = {\n\
-' + attributeInstructions.join(',\n') + '\n\
 	}\n\
 	var executeInstructions = {\n\
 ' + executeInstructions.join(',\n') + '\n\
@@ -316,7 +302,13 @@ module.exports = function (ctx) {
 	\n\
 	function handleAttributes(layerAttributes, attributes) {\n\
 		forEach(attributes, function (attribute, value) {\n\
-			layerAttributes.element.setAttribute(attribute, value)\n\
+			switch (attribute) {\n\
+				case \'disabled\':\n\
+					layerAttributes.element.disabled = value\n\
+					break\n\
+				default:\n\
+					layerAttributes.element.setAttribute(attribute, value)\n\
+			}\n\
 			layerAttributes.cache[attribute] = true\n\
 		})\n\
 \n\
@@ -416,10 +408,6 @@ module.exports = function (ctx) {
 			if (i >= layer.state.length || chainState[i] < layer.state[i]) {\n\
 				layer.state.splice(i, 0, chainState[i])\n\
 				insert(layer, chainState[i], data)\n\
-\n\
-				if (dynamicNodes[chainState[i]] & ATTRIBUTES) {\n\
-					attributeInstructions[chainState[i]](layer, data)\n\
-				}\n\
 			} else if (chainState[i] > layer.state[i]) {\n\
 				remove(layer, layer.state[i])\n\
 				layer.state.splice(i, 1)\n\
@@ -430,8 +418,6 @@ module.exports = function (ctx) {
 				} else if (dynamicNodes[chainState[i]] & TEXT_NODE) {\n\
 					remove(layer, chainState[i])\n\
 					insert(layer, chainState[i], data)\n\
-				} else if (dynamicNodes[chainState[i]] & ATTRIBUTES) {\n\
-					attributeInstructions[chainState[i]](layer, data)\n\
 				} else if (dynamicNodes[chainState[i]] & EXECUTE) {\n\
 					executeInstructions[chainState[i]](layer, data)\n\
 				} else if (dynamicNodes[chainState[i]] & COMPONENT) {\n\
