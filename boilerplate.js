@@ -21,10 +21,10 @@ module.exports = function (ctx) {
 	for (field in ctx.templates) {
 		if (ctx.templates.hasOwnProperty(field)) {
 			templates.push(
-				field + ': function (data) {\n\
-	var chainState = []\n\
+				field + ': function (layer, data) {\n\
+	layer.index = -1\n\
 ' + ctx.templates[field] + '\n\
-	return chainState\n\
+	handleTail(layer)\n\
 }'
 			)
 		}
@@ -127,6 +127,7 @@ module.exports = function (ctx) {
 \n\
 	function createLayer() {\n\
 		return {\n\
+			index: 0,\n\
 			state: [],\n\
 			elements: {},\n\
 			anchors: {},\n\
@@ -193,7 +194,7 @@ module.exports = function (ctx) {
 				children.items.splice(index, 0, item)\n\
 				usedIndexes.push(index)\n\
 \n\
-				render(templates[layerIndex + 1](data), layer, data)\n\
+				templates[layerIndex + 1](layer, data)\n\
 			} else {\n\
 				if (preservedIndex !== index) {\n\
 					nextSibling = children.layers[index].elements[layerIndex + 1]\n\
@@ -218,7 +219,7 @@ module.exports = function (ctx) {
 				}\n\
 \n\
 				usedIndexes.push(index)\n\
-				render(templates[layerIndex + 1](data), children.layers[index], data)\n\
+				templates[layerIndex + 1](children.layers[index], data)\n\
 			}\n\
 \n\
 			index++\n\
@@ -401,39 +402,43 @@ module.exports = function (ctx) {
 		}\n\
 	}\n\
 \n\
-	function render(chainState, layer, data) {\n\
-		var i = 0\n\
+	function handleTemplate(construction, layer, data) {\n\
+		layer.index++\n\
 \n\
-		for (; i < chainState.length; i++) {\n\
-			if (i >= layer.state.length || chainState[i] < layer.state[i]) {\n\
-				layer.state.splice(i, 0, chainState[i])\n\
-				insert(layer, chainState[i], data)\n\
-			} else if (chainState[i] > layer.state[i]) {\n\
-				remove(layer, layer.state[i])\n\
-				layer.state.splice(i, 1)\n\
-				i--\n\
-			} else if (typeof dynamicNodes[chainState[i]] !== \'undefined\') {\n\
-				if (dynamicNodes[chainState[i]] & ARRAY) {\n\
-					arrayInstructions[chainState[i]](layer, data)\n\
-				} else if (dynamicNodes[chainState[i]] & TEXT_NODE) {\n\
-					remove(layer, chainState[i])\n\
-					insert(layer, chainState[i], data)\n\
-				} else if (dynamicNodes[chainState[i]] & EXECUTE) {\n\
-					executeInstructions[chainState[i]](layer, data)\n\
-				} else if (dynamicNodes[chainState[i]] & COMPONENT) {\n\
-					componentInstuctions[chainState[i]](layer, data)\n\
-				}\n\
+		if (layer.index >= layer.state.length || construction < layer.state[layer.index]) {\n\
+			layer.state.splice(layer.index, 0, construction)\n\
+			insert(layer, construction, data)\n\
+		} else if (construction > layer.state[layer.index]) {\n\
+			remove(layer, layer.state[layer.index])\n\
+			layer.state.splice(layer.index, 1)\n\
+			layer.index--\n\
+			handleTemplate(construction, layer, data)\n\
+		} else if (typeof dynamicNodes[construction] !== \'undefined\') {\n\
+			if (dynamicNodes[construction] & ARRAY) {\n\
+				arrayInstructions[construction](layer, data)\n\
+			} else if (dynamicNodes[construction] & TEXT_NODE) {\n\
+				remove(layer, construction)\n\
+				insert(layer, construction, data)\n\
+			} else if (dynamicNodes[construction] & EXECUTE) {\n\
+				executeInstructions[construction](layer, data)\n\
+			} else if (dynamicNodes[construction] & COMPONENT) {\n\
+				componentInstuctions[construction](layer, data)\n\
 			}\n\
 		}\n\
 \n\
-		for (; i < layer.state.length;) {\n\
-			remove(layer, layer.state[i])\n\
-			layer.state.splice(i, 1)\n\
+	}\n\
+\n\
+	function handleTail(layer) {\n\
+		layer.index++\n\
+\n\
+		for (; layer.index < layer.state.length;) {\n\
+			remove(layer, layer.state[layer.index])\n\
+			layer.state.splice(layer.index, 1)\n\
 		}\n\
 	}\n\
 \n\
 	if (typeof templates[0] !== \'undefined\' && typeof typeof layers[0] !== \'undefined\') {\n\
-		render(templates[0](data), layers[0], data)\n\
+		templates[0](layers[0], data)\n\
 	}\n\
 \n\
 	function setState(data) {\n\
@@ -444,7 +449,7 @@ module.exports = function (ctx) {
 		}\n\
 \n\
 		if (typeof templates[0] !== \'undefined\' && typeof typeof layers[0] !== \'undefined\') {\n\
-			render(templates[0](data), layers[0], data)\n\
+			templates[0](layers[0], data)\n\
 		}\n\
 \n\
 		return rootElements\n\

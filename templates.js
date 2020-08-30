@@ -1,6 +1,6 @@
 module.exports = {
 	chainStatePush: function (layer) {
-		return 'chainState.push(' + layer + ')\n'
+		return 'handleTemplate(' + layer + ', layer, data)\n'
 	},
 
 	createAnchor: function (layer) {
