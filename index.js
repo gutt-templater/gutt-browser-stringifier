@@ -223,13 +223,13 @@ function handleIfStatement(node, template, layer, ctx) {
 
 function handleForEachStatement(node, template, layer, ctx) {
   var nextLayer = ++ctx.index
-  var params = extractValuesFromAttrs(node.attrs, ['item', 'from', 'index'])
+  var params = extractValuesFromAttrs(node.attrs, ['item', 'from', 'key'])
 
   ctx.arrayInstructions[nextLayer] = templates.handleArray(
     nextLayer,
     logicHandler(params.from, ctx),
     logicHandler(params.item, ctx, true),
-    typeof params.index !== 'undefined' ? logicHandler(params.index, ctx, true) + ' = field' : ''
+    typeof params.key !== 'undefined' ? logicHandler(params.key, ctx, true) + ' = field' : ''
   )
   ctx.dynamicNodes[nextLayer] = 'ARRAY'
 
