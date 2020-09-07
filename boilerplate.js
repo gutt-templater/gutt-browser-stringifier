@@ -488,6 +488,10 @@ module.exports = function (ctx) {
 	}\n\
 \n\
 	function createTextElement(content) {\n\
+		if (String(content).indexOf(\'&\') === -1) {\n\
+			return document.createTextNode(content)\n\
+		}\n\
+\n\
 		avatarTextarea.innerHTML = content\n\
 		return document.createTextNode(avatarTextarea.value)\n\
 	}\n\
