@@ -616,6 +616,8 @@ module.exports = function (ctx) {
 \n\
 		if (arguments.length === 2) {\n\
 			state = arguments[1]\n\
+		} else {\n\
+			state = data\n\
 		}\n\
 \n\
 		if (typeof templates[0] !== \'undefined\' && typeof typeof layers[0] !== \'undefined\') {\n\
