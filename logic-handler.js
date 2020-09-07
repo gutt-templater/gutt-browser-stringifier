@@ -149,13 +149,13 @@ function handleArray (source) {
 	return '(function () { var _arr = {}; ' + str.join(' ') + ' return _arr;})()'
 }
 
-function prepareVariableKey (key) {
+function prepareVariableKey (key, ctx) {
 	switch (key.type) {
 		case 'num':
 		case 'var':
-			return expression(key);
+			return expression(key, ctx);
 		case 'str':
-			return '\'' + expression(key.value) + '\'';
+			return '\'' + expression(key.value, ctx) + '\'';
 	}
 }
 
@@ -178,7 +178,7 @@ function expression(tree, ctx, isSafeRead, isToWrite) {
 			}
 
 			var variable = (ctx.stack.indexOf(tree.value) > -1 ? 'stack' : 'data') + keys.map(function (key) {
-				return '[' + prepareVariableKey(key) + ']'
+				return '[' + prepareVariableKey(key, ctx) + ']'
 			}).join('')
 
 			if (isSafeRead) {
