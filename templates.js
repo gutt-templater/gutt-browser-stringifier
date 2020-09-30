@@ -36,5 +36,9 @@ module.exports = {
 			layer.elements[' + layer + '] = layer.components[' + layer + '](params, state)\n\
 			\n\
 		}'
+	},
+
+	createElementsFromVariable: function (content) {
+		return 'createElementsFromVariable(' + content + ')'
 	}
 }

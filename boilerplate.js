@@ -290,6 +290,7 @@ module.exports = function (ctx) {
 		0: createLayer()\n\
 	}\n\
 	var avatarTextarea = document.createElement(\'textarea\')\n\
+	var avatarDiv = document.createElement(\'div\')\n\
 \n\
 	function createLayer() {\n\
 		return {\n\
@@ -493,7 +494,20 @@ module.exports = function (ctx) {
 		}\n\
 \n\
 		avatarTextarea.innerHTML = content\n\
+\n\
 		return document.createTextNode(avatarTextarea.value)\n\
+	}\n\
+\n\
+	function createElementsFromVariable(content) {\n\
+		content = String(content)\n\
+\n\
+		if (content.indexOf(\'<\') !== -1 || content.indexOf(\'&\') !== -1) {\n\
+			avatarDiv.innerHTML = content\n\
+\n\
+			return Array.prototype.slice.call(avatarDiv.childNodes, 0, avatarDiv.childNodes.length)\n\
+		}\n\
+\n\
+		return [createTextElement(content)]\n\
 	}\n\
 \n\
 	function createAnchor(layer, index) {\n\

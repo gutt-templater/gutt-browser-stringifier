@@ -87,7 +87,8 @@ function logicNodeHandler(node, template, layer, ctx) {
     return 'layer.anchors[' + nextLayer + '] = childrenAnchor'
   } else {
     ctx.templates[template] += templates.chainStatePush(nextLayer)
-    ctx.createInstructions[nextLayer] = '[ createTextElement(' + logicHandler(node, ctx) + ') ]'
+    ctx.createInstructions[nextLayer] =
+      templates.createElementsFromVariable(logicHandler(node, ctx))
     ctx.dynamicNodes[nextLayer] = 'TEXT_NODE'
   }
 
