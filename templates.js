@@ -38,7 +38,7 @@ module.exports = {
 		}'
 	},
 
-	createElementsFromVariable: function (content) {
-		return 'createElementsFromVariable(' + content + ')'
+	handleTextNode: function (index, content) {
+		return 'handleTextNode(layer, ' + index + ', ' + content + ')'
 	}
 }

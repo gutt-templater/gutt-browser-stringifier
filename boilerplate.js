@@ -5,6 +5,7 @@ module.exports = function (ctx) {
 		dynamicNodes = [],
 		executeInstructions = [],
 		componentInstuctions = [],
+		textInstructions = [],
 		imports = [],
 		field
 
@@ -63,6 +64,16 @@ module.exports = function (ctx) {
 			componentInstuctions.push(
 				field + ': function (layer, data) {\n\
 					' + ctx.componentInstuctions[field] + '\n\
+				}'
+			)
+		}
+	}
+
+	for (field in ctx.textInstructions) {
+		if (ctx.textInstructions.hasOwnProperty(field)) {
+			textInstructions.push(
+				field + ': function (layer, data) {\n\
+					' + ctx.textInstructions[field] + '\n\
 				}'
 			)
 		}
@@ -283,6 +294,9 @@ module.exports = function (ctx) {
 	var componentInstuctions = {\n\
 ' + componentInstuctions.join(',\n') + '\n\
 	}\n\
+	var textInstructions = {\n\
+' + textInstructions.join(',\n') + '\n\
+	}\n\
 	var templates = {\n\
 ' + templates.join(',\n') + '\n\
 	}\n\
@@ -300,7 +314,8 @@ module.exports = function (ctx) {
 			anchors: {},\n\
 			children: {},\n\
 			attributes: {},\n\
-			components: {}\n\
+			components: {},\n\
+			textCache: {}\n\
 		}\n\
 	}\n\
 \n\
@@ -488,6 +503,19 @@ module.exports = function (ctx) {
 		})\n\
 	}\n\
 \n\
+	function handleTextNode(layer, index, content) {\n\
+		if (typeof layer.textCache[index] !== \'undefined\' && layer.textCache[index] !== content) {\n\
+			remove(TEXT_NODE, layer, index)\n\
+		}\n\
+\n\
+		if (typeof layer.textCache[index] === \'undefined\' || layer.textCache[index] !== content) {\n\
+			layer.elements[index] = createElementsFromVariable(content)\n\
+			layer.elements[index].forEach(function (element) { insertElement(layer, index, element) })\n\
+		}\n\
+\n\
+		layer.textCache[index] = content\n\
+	}\n\
+\n\
 	function createTextElement(content) {\n\
 		if (String(content).indexOf(\'&\') === -1) {\n\
 			return document.createTextNode(content)\n\
@@ -545,44 +573,48 @@ module.exports = function (ctx) {
 		}\n\
 	}\n\
 \n\
-	function insert(layer, index, data) {\n\
-		if (typeof arrayInstructions[index] !== \'undefined\') {\n\
-			arrayInstructions[index](layer, data)\n\
-		} else if (typeof executeInstructions[index] !== \'undefined\') {\n\
-			executeInstructions[index](layer, data)\n\
-		} else if (typeof componentInstuctions[index] !== \'undefined\') {\n\
-			componentInstuctions[index](layer, data)\n\
-		} else {\n\
-			var elements = createInstructions[index](layer, data)\n\
-\n\
-			layer.elements[index] = elements\n\
-			elements.forEach(function (element) { insertElement(layer, index, element) })\n\
+	function insert(type, layer, index, data) {\n\
+		switch (type) {\n\
+			case ARRAY: \n\
+				return arrayInstructions[index](layer, data)\n\
+			case EXECUTE:\n\
+				return executeInstructions[index](layer, data)\n\
+			case COMPONENT:\n\
+				return componentInstuctions[index](layer, data)\n\
+			case TEXT_NODE:\n\
+				return textInstructions[index](layer,data)\n\
+			default:\n\
+				layer.elements[index] = createInstructions[index](layer, data)\n\
+				layer.elements[index].forEach(function (element) { insertElement(layer, index, element) })\n\
 		}\n\
 	}\n\
 \n\
-	function remove(layer, index) {\n\
-		if (typeof arrayInstructions[index] !== \'undefined\') {\n\
-			var layerIndex, elementIndex, element \n\
+	function remove(type, layer, index) {\n\
+		switch (type) {\n\
+			case ARRAY: \n\
+				var layerIndex, elementIndex, element \n\
 \n\
-			for (layerIndex in layer.children[index].layers) {\n\
-				if (layer.children[index].layers.hasOwnProperty(layerIndex)) {\n\
-					for (elementIndex in layer.children[index].layers[layerIndex].elements) {\n\
-						if (layer.children[index].layers[layerIndex].elements.hasOwnProperty(elementIndex)) {\n\
-							layer.children[index].layers[layerIndex].elements[elementIndex].forEach(removeElement)\n\
+				for (layerIndex in layer.children[index].layers) {\n\
+					if (layer.children[index].layers.hasOwnProperty(layerIndex)) {\n\
+						for (elementIndex in layer.children[index].layers[layerIndex].elements) {\n\
+							if (layer.children[index].layers[layerIndex].elements.hasOwnProperty(elementIndex)) {\n\
+								layer.children[index].layers[layerIndex].elements[elementIndex].forEach(removeElement)\n\
+							}\n\
 						}\n\
 					}\n\
 				}\n\
-			}\n\
 \n\
-			delete layer.children[index]\n\
-		} else if (typeof executeInstructions[index] === \'undefined\') {\n\
-			layer.elements[index].forEach(removeElement)\n\
+				delete layer.children[index]\n\
+				break\n\
+			case TEXT_NODE:\n\
+				delete layer.textCache[index]\n\
+			default:\n\
+				layer.elements[index].forEach(removeElement)\n\
+				delete layer.elements[index]\n\
 \n\
-			delete layer.elements[index]\n\
-\n\
-			if (typeof componentInstuctions[index] !==\'undefined\') {\n\
-				delete layer.components[index]\n\
-			}\n\
+				if (typeof componentInstuctions[index] !==\'undefined\') {\n\
+					delete layer.components[index]\n\
+				}\n\
 		}\n\
 	}\n\
 \n\
@@ -591,23 +623,14 @@ module.exports = function (ctx) {
 \n\
 		if (layer.index >= layer.state.length || construction < layer.state[layer.index]) {\n\
 			layer.state.splice(layer.index, 0, construction)\n\
-			insert(layer, construction, data)\n\
+			insert(dynamicNodes[construction], layer, construction, data)\n\
 		} else if (construction > layer.state[layer.index]) {\n\
-			remove(layer, layer.state[layer.index])\n\
+			remove(dynamicNodes[layer.state[layer.index]], layer, layer.state[layer.index])\n\
 			layer.state.splice(layer.index, 1)\n\
 			layer.index--\n\
 			handleTemplate(construction, layer, data)\n\
 		} else if (typeof dynamicNodes[construction] !== \'undefined\') {\n\
-			if (dynamicNodes[construction] & ARRAY) {\n\
-				arrayInstructions[construction](layer, data)\n\
-			} else if (dynamicNodes[construction] & TEXT_NODE) {\n\
-				remove(layer, construction)\n\
-				insert(layer, construction, data)\n\
-			} else if (dynamicNodes[construction] & EXECUTE) {\n\
-				executeInstructions[construction](layer, data)\n\
-			} else if (dynamicNodes[construction] & COMPONENT) {\n\
-				componentInstuctions[construction](layer, data)\n\
-			}\n\
+			insert(dynamicNodes[construction], layer, construction, data)\n\
 		}\n\
 \n\
 	}\n\
