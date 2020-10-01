@@ -58,16 +58,22 @@ function handleDefaultTag(node, template, layer, ctx) {
   var hasDynamicAttributes = typeof ctx.dynamicAttributes[layer][index] !== 'undefined' && ctx.dynamicAttributes[layer][index].length > 0
 
   if (hasDynamicAttributes) {
-    var nextLayer = ++ctx.index
     var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
-
-    ctx.templates[template] += templates.chainStatePush(nextLayer)
-    ctx.executeInstructions[nextLayer] = templates.handleAttributes(
+    var instruction = templates.handleAttributes(
       layer,
       index,
       ctx.dynamicAttributes[layer][index].join(',\n')
     )
-    ctx.dynamicNodes[nextLayer] = 'EXECUTE'
+
+    if (ctx.dynamicNodes[ctx.index] === 'EXECUTE') {
+      ctx.executeInstructions[ctx.index] += '\n' + instruction
+    } else {
+      var nextLayer = ++ctx.index
+
+      ctx.executeInstructions[nextLayer] = instruction
+      ctx.dynamicNodes[nextLayer] = 'EXECUTE'
+      ctx.templates[template] += templates.chainStatePush(nextLayer)
+    }
   }
 
   return templates.createElement(
@@ -129,27 +135,38 @@ function handleImportStatement(node, template, layer, ctx) {
 }
 
 function handleUseStateStatement(node, template, layer, ctx) {
-  var nextLayer = ++ctx.index
   var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
   var name = handleNode(params.name, template, layer, ctx)
-
-  ctx.executeInstructions[nextLayer] = 'if (typeof state[\'' + params.name.expr.value + '\'] === \'undefined\') ' +
+  var instruction = 'if (typeof state[\'' + params.name.expr.value + '\'] === \'undefined\') ' +
     logicHandler(params.name, ctx, true) + ' = ' + handleNode(params.value, template, layer, ctx) + '; else ' +
     logicHandler(params.name, ctx, true) + ' = state[\'' + params.name.expr.value + '\']'
 
-  ctx.dynamicNodes[nextLayer] = 'EXECUTE'
-  ctx.templates[template] += templates.chainStatePush(nextLayer)
+  if (ctx.dynamicNodes[ctx.index] === 'EXECUTE') {
+    ctx.executeInstructions[ctx.index] += '\n' + instruction
+  } else {
+    var nextLayer = ++ctx.index
+
+    ctx.executeInstructions[nextLayer] = instruction
+    ctx.dynamicNodes[nextLayer] = 'EXECUTE'
+    ctx.templates[template] += templates.chainStatePush(nextLayer)
+  }
 
   return ''
 }
 
 function handleVariableStatement(node, template, layer, ctx) {
-  var nextLayer = ++ctx.index
   var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
+  var instruction = logicHandler(params.name, ctx, true) + ' = ' + handleNode(params.value, template, layer, ctx)
 
-  ctx.executeInstructions[nextLayer] = logicHandler(params.name, ctx, true) + ' = ' + handleNode(params.value, template, layer, ctx)
-  ctx.dynamicNodes[nextLayer] = 'EXECUTE'
-  ctx.templates[template] += templates.chainStatePush(nextLayer)
+  if (ctx.dynamicNodes[ctx.index] === 'EXECUTE') {
+    ctx.executeInstructions[ctx.index] += '\n' + instruction
+  } else {
+    var nextLayer = ++ctx.index
+
+    ctx.executeInstructions[nextLayer] = instruction
+    ctx.dynamicNodes[nextLayer] = 'EXECUTE'
+    ctx.templates[template] += templates.chainStatePush(nextLayer)
+  }
 
   return ''
 }
@@ -184,6 +201,7 @@ function handleCaseStatement(node, template, layer, ctx) {
     handleTemplate(node.firstChild, template, nextLayer, ctx)
 
     ctx.templates[template] += '}\n'
+    ctx.index++
 
     return templates.createAnchor(nextLayer)
   }
@@ -199,6 +217,7 @@ function handleDefaultStatement(node, template, layer, ctx) {
     handleTemplate(node.firstChild, template, nextLayer, ctx)
 
     ctx.templates[template] += '}\n'
+    ctx.index++
 
     return templates.createAnchor(nextLayer)
   }
@@ -215,6 +234,7 @@ function handleIfStatement(node, template, layer, ctx) {
     handleTemplate(node.firstChild, template, nextLayer, ctx)
 
     ctx.templates[template] += '}\n'
+    ctx.index++
 
     return templates.createAnchor(nextLayer)
   }

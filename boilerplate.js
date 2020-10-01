@@ -272,7 +272,7 @@ module.exports = function (ctx) {
 	}\n\
 \n\
 	var instructions = {\n\
-' + instructions.join(',\n') + '\n\
+' + instructions.filter(Boolean).join(',\n') + '\n\
 	}\n\
 	var templates = {\n\
 ' + templates.join(',\n') + '\n\
