@@ -1,20 +1,15 @@
 module.exports = function (ctx) {
 	var createInstructions = [],
 		templates = [],
-		arrayInstructions = [],
+		instructions = [],
 		dynamicNodes = [],
-		executeInstructions = [],
-		componentInstuctions = [],
-		textInstructions = [],
 		imports = [],
 		field
 
-	for (field in ctx.createInstructions) {
-		if (ctx.createInstructions.hasOwnProperty(field)) {
-			createInstructions.push(
-				field + ': function (layer) {\n\
-	return ' + ctx.createInstructions[field] + '\n\
-}'
+	for (field in ctx.dynamicNodes) {
+		if (ctx.dynamicNodes.hasOwnProperty(field)) {
+			dynamicNodes.push(
+				field + ': ' + ctx.dynamicNodes[field]
 			)
 		}
 	}
@@ -31,37 +26,33 @@ module.exports = function (ctx) {
 		}
 	}
 
-	for (field in ctx.arrayInstructions) {
-		if (ctx.arrayInstructions.hasOwnProperty(field)) {
-			arrayInstructions.push(
-				field + ': function (layer, data) {\n\
-' + ctx.arrayInstructions[field] + '\n\
+	for (field in ctx.createInstructions) {
+		if (ctx.createInstructions.hasOwnProperty(field)) {
+			instructions[field] = field + ': function (layer) {\n\
+	return ' + ctx.createInstructions[field] + '\n\
 }'
-			)
 		}
 	}
 
-	for (field in ctx.dynamicNodes) {
-		if (ctx.dynamicNodes.hasOwnProperty(field)) {
-			dynamicNodes.push(
-				field + ': ' + ctx.dynamicNodes[field]
-			)
+	for (field in ctx.arrayInstructions) {
+		if (ctx.arrayInstructions.hasOwnProperty(field)) {
+			instructions[field] = field + ': function (layer, data) {\n\
+' + ctx.arrayInstructions[field] + '\n\
+}'
 		}
 	}
 
 	for (field in ctx.executeInstructions) {
 		if (ctx.executeInstructions.hasOwnProperty(field)) {
-			executeInstructions.push(
-				field + ': function (layer, data) {\n\
-					' + ctx.executeInstructions[field] + '\n\
-				}'
-			)
+			instructions[field] = field + ': function (layer, data) {\n\
+				' + ctx.executeInstructions[field] + '\n\
+			}'
 		}
 	}
 
 	for (field in ctx.componentInstuctions) {
 		if (ctx.componentInstuctions.hasOwnProperty(field)) {
-			componentInstuctions.push(
+			instructions.push(
 				field + ': function (layer, data) {\n\
 					' + ctx.componentInstuctions[field] + '\n\
 				}'
@@ -71,11 +62,9 @@ module.exports = function (ctx) {
 
 	for (field in ctx.textInstructions) {
 		if (ctx.textInstructions.hasOwnProperty(field)) {
-			textInstructions.push(
-				field + ': function (layer, data) {\n\
-					' + ctx.textInstructions[field] + '\n\
-				}'
-			)
+			instructions[field] = field + ': function (layer, data) {\n\
+				' + ctx.textInstructions[field] + '\n\
+			}'
 		}
 	}
 
@@ -282,20 +271,8 @@ module.exports = function (ctx) {
 		childrenAnchor = arguments[4]\n\
 	}\n\
 \n\
-	var createInstructions = {\n\
-' + createInstructions.join(',\n') + '\n\
-	}\n\
-	var arrayInstructions = {\n\
-' + arrayInstructions.join(',\n') + '\n\
-	}\n\
-	var executeInstructions = {\n\
-' + executeInstructions.join(',\n') + '\n\
-	}\n\
-	var componentInstuctions = {\n\
-' + componentInstuctions.join(',\n') + '\n\
-	}\n\
-	var textInstructions = {\n\
-' + textInstructions.join(',\n') + '\n\
+	var instructions = {\n\
+' + instructions.join(',\n') + '\n\
 	}\n\
 	var templates = {\n\
 ' + templates.join(',\n') + '\n\
@@ -576,15 +553,12 @@ module.exports = function (ctx) {
 	function insert(type, layer, index, data) {\n\
 		switch (type) {\n\
 			case ARRAY: \n\
-				return arrayInstructions[index](layer, data)\n\
 			case EXECUTE:\n\
-				return executeInstructions[index](layer, data)\n\
 			case COMPONENT:\n\
-				return componentInstuctions[index](layer, data)\n\
 			case TEXT_NODE:\n\
-				return textInstructions[index](layer,data)\n\
+				return instructions[index](layer,data)\n\
 			default:\n\
-				layer.elements[index] = createInstructions[index](layer, data)\n\
+				layer.elements[index] = instructions[index](layer, data)\n\
 				layer.elements[index].forEach(function (element) { insertElement(layer, index, element) })\n\
 		}\n\
 	}\n\
@@ -612,7 +586,7 @@ module.exports = function (ctx) {
 				layer.elements[index].forEach(removeElement)\n\
 				delete layer.elements[index]\n\
 \n\
-				if (typeof componentInstuctions[index] !==\'undefined\') {\n\
+				if (type === COMPONENT) {\n\
 					delete layer.components[index]\n\
 				}\n\
 		}\n\
