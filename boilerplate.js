@@ -488,9 +488,8 @@ module.exports = function (ctx) {
 		if (typeof layer.textCache[index] === \'undefined\' || layer.textCache[index] !== content) {\n\
 			layer.elements[index] = createElementsFromVariable(content)\n\
 			layer.elements[index].forEach(function (element) { insertElement(layer, index, element) })\n\
+			layer.textCache[index] = content\n\
 		}\n\
-\n\
-		layer.textCache[index] = content\n\
 	}\n\
 \n\
 	function createTextElement(content) {\n\

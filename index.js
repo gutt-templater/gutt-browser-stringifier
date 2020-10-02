@@ -54,7 +54,6 @@ function handleDefaultTag(node, template, layer, ctx) {
     }
   })
 
-  var children = walk(node.firstChild, template, layer, ctx)
   var hasDynamicAttributes = typeof ctx.dynamicAttributes[layer][index] !== 'undefined' && ctx.dynamicAttributes[layer][index].length > 0
 
   if (hasDynamicAttributes) {
@@ -79,7 +78,7 @@ function handleDefaultTag(node, template, layer, ctx) {
   return templates.createElement(
     node.name,
     staticAttributes.join(', '),
-    children,
+    walk(node.firstChild, template, layer, ctx),
     hasDynamicAttributes,
     layer,
     index
