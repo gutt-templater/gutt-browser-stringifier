@@ -128,6 +128,23 @@ module.exports = function (ctx) {
 	var STRPADRIGHT = 1 << 1;\n\
 	var STRPADLEFT = 2 << 1;\n\
 	var STRPADBOTH = 4 << 1;\n\
+	var booleanAttributes = [\n\
+		\'autofocus\',\n\
+		\'autoplay\',\n\
+		\'async\',\n\
+		\'checked\',\n\
+		\'defer\',\n\
+		\'disabled\',\n\
+		\'hidden\',\n\
+		\'loop\',\n\
+		\'multiple\',\n\
+		\'muted\',\n\
+		\'nomodule\',\n\
+		\'open\',\n\
+		\'preload\',\n\
+		\'required\',\n\
+		\'selected\'\n\
+	]\n\
 	function __str_pad_repeater(str, len) {\n\
 		var collect = \'\', i;\n\
 		while(collect.length < len) collect += str;\n\
@@ -462,13 +479,12 @@ module.exports = function (ctx) {
 	\n\
 	function handleAttributes(layerAttributes, attributes) {\n\
 		forEach(attributes, function (attribute, value) {\n\
-			switch (attribute) {\n\
-				case \'disabled\':\n\
-					layerAttributes.element.disabled = value\n\
-					break\n\
-				default:\n\
-					layerAttributes.element.setAttribute(attribute, value)\n\
+			if (booleanAttributes.indexOf(attribute) !== -1) {\n\
+				layerAttributes.element[attribute] = value\n\
+			} else {\n\
+				layerAttributes.element.setAttribute(attribute, value)\n\
 			}\n\
+\n\
 			layerAttributes.cache[attribute] = true\n\
 		})\n\
 \n\
