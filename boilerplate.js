@@ -628,7 +628,7 @@ module.exports = function (ctx) {
 		layer.index++\n\
 \n\
 		for (; layer.index < layer.state.length;) {\n\
-			remove(layer, layer.state[layer.index])\n\
+			remove(dynamicNodes[layer.state[layer.index]], layer, layer.state[layer.index])\n\
 			layer.state.splice(layer.index, 1)\n\
 		}\n\
 	}\n\
