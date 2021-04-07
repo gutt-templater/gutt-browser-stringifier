@@ -52,11 +52,9 @@ module.exports = function (ctx) {
 
 	for (field in ctx.componentInstuctions) {
 		if (ctx.componentInstuctions.hasOwnProperty(field)) {
-			instructions.push(
-				field + ': function (layer, data) {\n\
-					' + ctx.componentInstuctions[field] + '\n\
-				}'
-			)
+			instructions[field] = field + ': function (layer, data) {\n\
+				' + ctx.componentInstuctions[field] + '\n\
+			}'
 		}
 	}
 
@@ -260,7 +258,6 @@ module.exports = function (ctx) {
 		for(i in arr) if (Object.prototype.hasOwnProperty.call(arr, i)) if (value == arr[i]) return i;\n\
 		return -1;\n\
 	}\n\
-	var refNode\n\
 	var data\n\
 	var state\n\
 	var childrenAnchor\n\
@@ -277,12 +274,15 @@ module.exports = function (ctx) {
 	var dynamicNodes = {\n\
 ' + dynamicNodes.join(',\n') + '\n\
 	}\n\
+	var layers = {\n\
+		0: createLayer()\n\
+	}\n\
 \n\
 	if (arguments.length === 2) {\n\
 		data = arguments[1]\n\
 		state = arguments[1]\n\
 	} else {\n\
-		refNode = arguments[1]\n\
+		layers[0].anchors[0] = arguments[1]\n\
 		data = arguments[2]\n\
 		state = arguments[3]\n\
 		childrenAnchor = arguments[4]\n\
@@ -293,9 +293,6 @@ module.exports = function (ctx) {
 	}\n\
 	var templates = {\n\
 ' + templates.join(',\n') + '\n\
-	}\n\
-	var layers = {\n\
-		0: createLayer()\n\
 	}\n\
 	var avatarTextarea = document.createElement(\'textarea\')\n\
 	var avatarDiv = document.createElement(\'div\')\n\
