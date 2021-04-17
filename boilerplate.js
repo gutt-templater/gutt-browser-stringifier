@@ -432,7 +432,7 @@ module.exports = function (ctx) {
 		})\n\
 \n\
 		forEach(layer.elements, function (elementIndex, element) {\n\
-			remove(layer, elementIndex)\n\
+			remove(dynamicNodes[layer.state[layer.index]], layer, elementIndex)\n\
 		})\n\
 	}\n\
 \n\
@@ -591,6 +591,8 @@ module.exports = function (ctx) {
 				}\n\
 \n\
 				delete layer.children[index]\n\
+				break\n\
+			case EXECUTE:\n\
 				break\n\
 			case TEXT_NODE:\n\
 				delete layer.textCache[index]\n\
