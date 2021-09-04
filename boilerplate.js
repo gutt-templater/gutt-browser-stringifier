@@ -29,7 +29,8 @@ module.exports = function (ctx) {
 	for (field in ctx.createInstructions) {
 		if (ctx.createInstructions.hasOwnProperty(field)) {
 			instructions[field] = field + ': function (layer) {\n\
-	return ' + ctx.createInstructions[field] + '\n\
+	layer.elements[' + field + '] = ' + ctx.createInstructions[field] + '\n\
+	insertElements(layer, ' + field + ')\n\
 }'
 		}
 	}
@@ -336,10 +337,7 @@ module.exports = function (ctx) {
 		var index = 0, layer, preservedIndex, nextSibling, moveElement\n\
 		var usedIndexes = []\n\
 		var unusedIndexes = []\n\
-\n\
-		createChildren(parentLayer, layerIndex)\n\
-\n\
-		var children = parentLayer.children[layerIndex]\n\
+		var children = createChildren(parentLayer, layerIndex)\n\
 \n\
 		iterator(function (field, item) {\n\
 			preservedIndex = indexOf(children.items, item, usedIndexes)\n\
@@ -443,6 +441,8 @@ module.exports = function (ctx) {
 				items: []\n\
 			}\n\
 		}\n\
+\n\
+		return layer.children[index]\n\
 	}\n\
 \n\
 	function createElement(nodeType, attributes, children, layer, layerIndex, index) {\n\
@@ -499,8 +499,8 @@ module.exports = function (ctx) {
 		}\n\
 \n\
 		if (typeof layer.textCache[index] === \'undefined\' || layer.textCache[index] !== content) {\n\
-			layer.elements[index] = createElementsFromVariable(content)\n\
-			layer.elements[index].forEach(function (element) { insertElement(layer, index, element) })\n\
+			layer.elements[index] = createElementsFromContent(String(content))\n\
+			insertElements(layer, index)\n\
 			layer.textCache[index] = content\n\
 		}\n\
 	}\n\
@@ -515,9 +515,7 @@ module.exports = function (ctx) {
 		return document.createTextNode(avatarTextarea.value)\n\
 	}\n\
 \n\
-	function createElementsFromVariable(content) {\n\
-		content = String(content)\n\
-\n\
+	function createElementsFromContent(content) {\n\
 		if (content.indexOf(\'<\') !== -1 || content.indexOf(\'&\') !== -1) {\n\
 			avatarDiv.innerHTML = content\n\
 \n\
@@ -528,11 +526,17 @@ module.exports = function (ctx) {
 	}\n\
 \n\
 	function createAnchor(layer, index) {\n\
-		var anchor = document.createComment(\'\')\n\
+		var anchor = document.createComment(index)\n\
 \n\
 		layer.anchors[index] = anchor\n\
 \n\
 		return anchor\n\
+	}\n\
+\n\
+	function insertElements(layer, index) {\n\
+		layer.elements[index].forEach(function (element) {\n\
+			insertElement(layer, index, element)\n\
+		})\n\
 	}\n\
 \n\
 	function insertElement(layer, index, element) {\n\
@@ -559,19 +563,6 @@ module.exports = function (ctx) {
 	function removeElement(element) {\n\
 		if (element.parentNode !== null) {\n\
 			element.parentNode.removeChild(element)\n\
-		}\n\
-	}\n\
-\n\
-	function insert(type, layer, index, data) {\n\
-		switch (type) {\n\
-			case ARRAY: \n\
-			case EXECUTE:\n\
-			case COMPONENT:\n\
-			case TEXT_NODE:\n\
-				return instructions[index](layer,data)\n\
-			default:\n\
-				layer.elements[index] = instructions[index](layer, data)\n\
-				layer.elements[index].forEach(function (element) { insertElement(layer, index, element) })\n\
 		}\n\
 	}\n\
 \n\
@@ -606,19 +597,19 @@ module.exports = function (ctx) {
 		}\n\
 	}\n\
 \n\
-	function handleTemplate(construction, layer, data) {\n\
+	function handleTemplate(instructionIndex, layer, data) {\n\
 		layer.index++\n\
 \n\
-		if (layer.index >= layer.state.length || construction < layer.state[layer.index]) {\n\
-			layer.state.splice(layer.index, 0, construction)\n\
-			insert(dynamicNodes[construction], layer, construction, data)\n\
-		} else if (construction > layer.state[layer.index]) {\n\
+		if (layer.index >= layer.state.length || instructionIndex < layer.state[layer.index]) {\n\
+			layer.state.splice(layer.index, 0, instructionIndex)\n\
+			instructions[instructionIndex](layer, data)\n\
+		} else if (instructionIndex > layer.state[layer.index]) {\n\
 			remove(dynamicNodes[layer.state[layer.index]], layer, layer.state[layer.index])\n\
 			layer.state.splice(layer.index, 1)\n\
 			layer.index--\n\
-			handleTemplate(construction, layer, data)\n\
-		} else if (typeof dynamicNodes[construction] !== \'undefined\') {\n\
-			insert(dynamicNodes[construction], layer, construction, data)\n\
+			handleTemplate(instructionIndex, layer, data)\n\
+		} else if (typeof dynamicNodes[instructionIndex] !== \'undefined\') {\n\
+			instructions[instructionIndex](layer, data)\n\
 		}\n\
 \n\
 	}\n\
