@@ -177,7 +177,7 @@ function expression(tree, ctx, isSafeRead, isToWrite) {
 				}
 			}
 
-			var variable = (ctx.stack.indexOf(tree.value) > -1 ? 'stack' : 'data') + keys.map(function (key) {
+			var variable = 'scope' + keys.map(function (key) {
 				return '[' + prepareVariableKey(key, ctx) + ']'
 			}).join('')
 

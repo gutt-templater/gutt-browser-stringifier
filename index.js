@@ -71,7 +71,7 @@ function handleDefaultTag(node, template, layer, ctx) {
 
       ctx.executeInstructions[nextLayer] = instruction
       ctx.dynamicNodes[nextLayer] = 'EXECUTE'
-      ctx.templates[template] += templates.chainStatePush(nextLayer)
+      ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
     }
   }
 
@@ -79,7 +79,6 @@ function handleDefaultTag(node, template, layer, ctx) {
     node.name,
     staticAttributes.join(', '),
     walk(node.firstChild, template, layer, ctx),
-    hasDynamicAttributes,
     layer,
     index
   )
@@ -91,7 +90,7 @@ function logicNodeHandler(node, template, layer, ctx) {
   if (node.expr.type === 'var' && node.expr.value === 'children') {
     return 'layer.anchors[' + nextLayer + '] = childrenAnchor'
   } else {
-    ctx.templates[template] += templates.chainStatePush(nextLayer)
+    ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
     ctx.textInstructions[nextLayer] =
       templates.handleTextNode(nextLayer, logicHandler(node, ctx))
     ctx.dynamicNodes[nextLayer] = 'TEXT_NODE'
@@ -113,12 +112,18 @@ function handleComponent(node, template, layer, ctx) {
     ))
   })
 
-  ctx.templates[template] += templates.chainStatePush(nextLayer)
-  ctx.componentInstuctions[nextLayer] = templates.componentInstuction(nextLayer, node.name, params.join(','), childrenLayer)
+  ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
+  ctx.componentInstuctions[nextLayer] = templates.componentInstuction(
+    nextLayer,
+    node.name,
+    params.join(','),
+    ctx.params.type === 'module',
+    childrenLayer
+  )
   ctx.dynamicNodes[nextLayer] = 'COMPONENT'
 
   if (node.firstChild) {
-    ctx.templates[template] += templates.chainStatePush(childrenLayer)
+    ctx.templates[template] += templates.chainStatePush(childrenLayer, ctx.params.type === 'module')
     ctx.createInstructions[childrenLayer] = '[' + walk(node.firstChild, template, layer, ctx) + ']'
   }
 
@@ -128,6 +133,10 @@ function handleComponent(node, template, layer, ctx) {
 function handleImportStatement(node, template, layer, ctx) {
   var params = extractValuesFromAttrs(node.attrs, ['name', 'from'])
 
+  if (ctx.params.type === 'module') {
+    params.from.value += '.js'
+  }
+
   ctx.imports[params.name.value] = handleNode(params.from, template, layer, ctx)
 
   return ''
@@ -136,8 +145,12 @@ function handleImportStatement(node, template, layer, ctx) {
 function handleUseStateStatement(node, template, layer, ctx) {
   var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
   var name = handleNode(params.name, template, layer, ctx)
-  var instruction = 'if (typeof state[\'' + params.name.expr.value + '\'] === \'undefined\') ' +
-    logicHandler(params.name, ctx, true) + ' = ' + handleNode(params.value, template, layer, ctx) + '; else ' +
+  var instruction = (
+    typeof params.value !== 'undefined'
+      ? 'if (typeof state[\'' + params.name.expr.value + '\'] === \'undefined\') ' +
+        logicHandler(params.name, ctx, true) + ' = ' + handleNode(params.value, template, layer, ctx) + '; else '
+      : ''
+    ) +
     logicHandler(params.name, ctx, true) + ' = state[\'' + params.name.expr.value + '\']'
 
   if (ctx.dynamicNodes[ctx.index] === 'EXECUTE') {
@@ -147,7 +160,7 @@ function handleUseStateStatement(node, template, layer, ctx) {
 
     ctx.executeInstructions[nextLayer] = instruction
     ctx.dynamicNodes[nextLayer] = 'EXECUTE'
-    ctx.templates[template] += templates.chainStatePush(nextLayer)
+    ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
   }
 
   return ''
@@ -164,7 +177,7 @@ function handleVariableStatement(node, template, layer, ctx) {
 
     ctx.executeInstructions[nextLayer] = instruction
     ctx.dynamicNodes[nextLayer] = 'EXECUTE'
-    ctx.templates[template] += templates.chainStatePush(nextLayer)
+    ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
   }
 
   return ''
@@ -180,7 +193,7 @@ function handleParamStatement(node, template, layer, ctx) {
     logicHandler(params.name, ctx, true) + ' = ' + name
 
   ctx.dynamicNodes[nextLayer] = 'EXECUTE'
-  ctx.templates[template] += templates.chainStatePush(nextLayer)
+  ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
 
   return ''
 }
@@ -195,7 +208,7 @@ function handleCaseStatement(node, template, layer, ctx) {
     var nextLayer = ++ctx.index
 
     ctx.templates[template] += (node.previousSibling ? 'else ' : '') + 'if (' + logicHandler(params.test, ctx) + ') {\n' +
-      templates.chainStatePush(nextLayer)
+      templates.chainStatePush(nextLayer, ctx.params.type === 'module')
 
     handleTemplate(node.firstChild, template, nextLayer, ctx)
 
@@ -211,7 +224,7 @@ function handleDefaultStatement(node, template, layer, ctx) {
     var nextLayer = ++ctx.index
 
     ctx.templates[template] += 'else {\n' +
-      templates.chainStatePush(nextLayer)
+      templates.chainStatePush(nextLayer, ctx.params.type === 'module')
 
     handleTemplate(node.firstChild, template, nextLayer, ctx)
 
@@ -228,7 +241,7 @@ function handleIfStatement(node, template, layer, ctx) {
     var nextLayer = ++ctx.index
 
     ctx.templates[template] += 'if (' + logicHandler(params.test, ctx) + ') {\n' +
-      templates.chainStatePush(nextLayer)
+      templates.chainStatePush(nextLayer, ctx.params.type === 'module')
 
     handleTemplate(node.firstChild, template, nextLayer, ctx)
 
@@ -249,12 +262,13 @@ function handleForEachStatement(node, template, layer, ctx) {
     nextLayer,
     logicHandler(params.from, ctx),
     logicHandler(params.item, ctx, true),
+    ctx.params.type === 'module',
     typeof params.key !== 'undefined' ? logicHandler(params.key, ctx, true) + ' = field' : ''
   )
   ctx.dynamicNodes[nextLayer] = 'ARRAY'
 
   if (node.firstChild) {
-    ctx.templates[template] += templates.chainStatePush(nextLayer)
+    ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
 
     handleTemplate(node.firstChild, ++ctx.index, ctx.index, ctx)
   }
@@ -265,6 +279,12 @@ function handleForEachStatement(node, template, layer, ctx) {
 function handleAttributeStatement(node, template, layer, ctx) {
   var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
   var index = ctx.tags[layer]
+
+  console.log(node.name)
+  if (!ctx.dynamicAttributes[layer]) {
+    console.log(ctx.dynamicAttributes, layer)
+    console.log(ctx.tags)
+  }
 
   if (typeof ctx.dynamicAttributes[layer][index] === 'undefined') {
     ctx.dynamicAttributes[layer][index] = []
@@ -285,7 +305,7 @@ function escapeString(text) {
 }
 
 function handleText(node) {
-  return 'createTextElement(\'' + escapeString(node.text) + '\')'
+  return '\'' + escapeString(node.text) + '\''
 }
 
 function handleString(node) {
@@ -339,6 +359,9 @@ function handleNode(node, template, layer, ctx) {
       return handleTag(node, template, layer, ctx)
     case 'logic-node':
       return logicNodeHandler(node, template, layer, ctx)
+    case 'script':
+      // console.log(node)
+      return ''
     default:
       return ''
   }
@@ -346,7 +369,7 @@ function handleNode(node, template, layer, ctx) {
 
 function handleTemplate(node, template, layer, ctx) {
   if (!ctx.templates[template]) {
-    ctx.templates[template] = templates.chainStatePush(layer)
+    ctx.templates[template] = templates.chainStatePush(layer, ctx.params.type === 'module')
   }
 
   ctx.createInstructions[layer] = '[\n' + walk(node, template, layer, ctx) + '\n]'
@@ -364,24 +387,37 @@ function walk(node, template, layer, ctx) {
   return result.filter(Boolean).join(',\n')
 }
 
-module.exports = function (ast, source, filepath) {
-  var ctx = {
-    createInstructions: {},
-    templates: {},
-    arrayInstructions: {},
-    dynamicNodes: {},
-    dynamicAttributes: {},
-    executeInstructions: {},
-    imports: {},
-    componentInstuctions: {},
-    textInstructions: {},
-    tags: {},
-    filepath: filepath,
-    stack: [],
-    index: 0
+function main(args) {
+  const params = Object.assign({ type: 'es' }, args)
+
+  return function (ast, source, filepath) {
+    var ctx = {
+      createInstructions: {},
+      templates: {},
+      arrayInstructions: {},
+      dynamicNodes: {},
+      dynamicAttributes: {},
+      executeInstructions: {},
+      imports: {},
+      componentInstuctions: {},
+      textInstructions: {},
+      tags: {},
+      filepath: filepath,
+      stack: [],
+      index: 0,
+      params: params
+    }
+
+    handleTemplate(ast, 0, 0, ctx)
+
+    return boilerplate(ctx, params)
+  }
+}
+
+module.exports = function () {
+  if (arguments.length === 1) {
+    return main(arguments[0])
   }
 
-  handleTemplate(ast.result, 0, 0, ctx)
-
-  return boilerplate(ctx)
+  return main({}).apply(null, arguments)
 }
