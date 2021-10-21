@@ -1,0 +1,21 @@
+<import name="x-input" from="../input/input.gutt" />
+
+<param name={$autocomplete} value="on" />
+<param name={$label} value="" />
+<param name={$type} value="text" />
+<param name={$value} value="" />
+<param name={$name} value="" />
+<param name={$disabled} value={false} />
+
+<dl class="field">
+	<dt class="field__dt">{$label}</dt>
+	<dd class="field__dd">
+		<x-input
+			autocomplete={$autocomplete}
+			type={$type}
+			value={$value}
+			disabled={$disabled}
+			name={$name}
+		/>
+	</dd>
+</dl>

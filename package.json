@@ -7,6 +7,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "npx gulp",
     "test": "mocha test/*.js --reporter dot"
   },
   "keywords": [
@@ -19,7 +20,13 @@
     "email": "mail@makingoff.name"
   },
   "repository": "https://github.com/makingoff/gutt-browser-stringifier",
-  "devDependencies": {},
+  "devDependencies": {
+    "browser-sync": "^2.27.5",
+    "gulp": "^4.0.2",
+    "gulp-gutt": "^0.4.1",
+    "gulp-rename": "^2.0.0",
+    "gutt": "^0.4.1"
+  },
   "license": "MIT",
   "dependencies": {}
 }

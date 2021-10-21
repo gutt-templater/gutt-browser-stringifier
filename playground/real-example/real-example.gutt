@@ -1,0 +1,8 @@
+<import name="manager-layout" from="./layouts/manager.gutt" />
+<import name="x-menu" from="./components/menu/menu.gutt" />
+<import name="orders-page" from="./components/orders-page/orders-page.gutt" />
+
+<manager-layout>
+	<x-menu />
+	<orders-page />
+</manager-layout>

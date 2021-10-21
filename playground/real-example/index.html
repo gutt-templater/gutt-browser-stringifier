@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Админка</title>
+	<link rel="preconnect" href="https://fonts.gstatic.com" />
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet" />
+</head>
+<body>
+	<div id="app">
+		<ul>
+			<li><a href="/manager/">Заказы</a></li>
+			<li><a href="/manager/templates/">Шаблоны</a></li>
+		</ul>
+
+		<section class="orders-page">
+			<div class="orders-page__header">
+				<div class="orders-page__search">
+				</div>
+
+				<div>
+					<span class="orders-page__summary">Проданных билетов: {$orders.succeeded}</span>
+					<span class="orders-page__summary">Сумма: {$orders.sum ++ " ₽"}</span>
+				</div>
+			</div>
+
+			<div class="orders-page__body">
+				<table class="orders-page__table">
+					<thead class="orders-page__thead">
+						<tr class="orders-page__tr">
+							<th class="orders-page__th"></th>
+							<th class="orders-page__th">Покупатель</th>
+							<th class="orders-page__th">Билет</th>
+							<th class="orders-page__th">Дата</th>
+							<th class="orders-page__th">Сумма</th>
+							<th class="orders-page__th">Откуда узнал</th>
+						</tr>
+					</thead>
+					<tbody class="orders-page__tbody">
+					</tbody>
+				</table>
+			</div>
+
+			<div class="orders-page__footer">
+			</div>
+		</section>
+	</div>
+	<script type="module">
+		const { default: realExampleTemplate } = await import('./real-example.gutt.js')
+
+		realExampleTemplate(document, {})
+	</script>
+</body>
+</html>

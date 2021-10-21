@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Gutt browser stringifier playground</title>
+	<style>
+		.scope {
+			padding: 1px 10px;
+			background: #ececec;
+		}
+
+		.scope + .scope {
+			margin-top: 20px;
+		}
+	</style>
+</head>
+<body>
+	{$children}
+
+	<script type="module">
+		let variable = 1
+		const { default: variableTemplate } = await import('./variable.gutt.js')
+		const variableSetState = await variableTemplate(document.getElementById('app'), { variable })
+
+		setInterval(() => variableSetState({ variable: ++variable }), 1000)
+	</script>
+</body>
+</html>

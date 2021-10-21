@@ -1,0 +1,61 @@
+<import name="fast-search" from="../fast-search/fast-search.gutt" />
+<import name="x-pagination" from="../pagination/pagination.gutt" />
+
+<use-state name={$orders} value={[
+	'items': [],
+	'sum': 0,
+	'succeeded': 0,
+	'total': 0
+]} />
+<use-state name={$page} value={1} />
+
+<section class="orders-page">
+	<div class="orders-page__header">
+		<div class="orders-page__search">
+			<fast-search placeholder="Поиск по имени, фамилии, почте или дате" />
+		</div>
+
+		<div>
+			<span class="orders-page__summary">Проданных билетов: {$orders.succeeded}</span>
+			<span class="orders-page__summary">Сумма: {$orders.sum ++ " ₽"}</span>
+		</div>
+	</div>
+
+	<div class="orders-page__body">
+		<table class="orders-page__table">
+			<thead class="orders-page__thead">
+				<tr class="orders-page__tr">
+					<th class="orders-page__th"></th>
+					<th class="orders-page__th">Покупатель</th>
+					<th class="orders-page__th">Билет</th>
+					<th class="orders-page__th">Дата</th>
+					<th class="orders-page__th">Сумма</th>
+					<th class="orders-page__th">Откуда узнал</th>
+				</tr>
+			</thead>
+			<tbody class="orders-page__tbody">
+				<for-each item={$order} from={$orders.items}>
+					<variable name={$datetime} value={$order.purchase_status == "succeeded" ?? $order.purchased !! $order.created} />
+					<variable name={$datetime} value={str_split($datetime, " ")} />
+					<variable name={$date} value={str_split($datetime[0], "-")} />
+					<variable name={$time} value={str_split($datetime[1], ":")} />
+
+					<tr class="orders-page__tr">
+						<td class="orders-page__td">
+							<span class={"orders-page__status orders-page__status--" ++ $order.purchase_status}></span>
+						</td>
+						<td class="orders-page__td">{$order.firstname ++ " " ++ $order.lastname}</td>
+						<td class="orders-page__td">{$order.tickets[0].title}</td>
+						<td class="orders-page__td">{$date[2] ++ "." ++ $date[1] ++ "." ++ str_sub($date[0], 2) ++ " " ++ $time[0] ++ ":" ++ $time[1]}</td>
+						<td class="orders-page__td">{$order.price ++ " ₽"}</td>
+						<td class="orders-page__td">{$order.note}</td>
+					</tr>
+				</for-each>
+			</tbody>
+		</table>
+	</div>
+
+	<div class="orders-page__footer">
+		<x-pagination length={$orders.total} on-page={100} url="/manager/" current-page={$page} />
+	</div>
+</section>

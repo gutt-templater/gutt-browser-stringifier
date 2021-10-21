@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Gutt browser stringifier playground</title>
+	<style>
+		.scope {
+			padding: 1px 10px;
+			background: #ececec;
+		}
+
+		.scope + .scope {
+			margin-top: 20px;
+		}
+	</style>
+</head>
+<body>
+	<h1>Gutt browser stringifier playground</h1>
+
+	<p>Rerender full page</p>
+
+	<script type="module">
+		const { default: fullPageTemplate } = await import('./full-page.gutt.js')
+
+		setTimeout(() => fullPageTemplate(document), 1000)
+	</script>
+</body>
+</html>

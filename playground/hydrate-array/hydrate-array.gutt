@@ -1,0 +1,13 @@
+<use-state name={$items} />
+
+<section>
+	<h2>Hydrated array</h2>
+
+	<p>Difficult case when array items right before static content hydrated</p>
+
+	<for-each item={$item} from={$items}>
+		<p>{$item}</p>
+	</for-each>
+
+	<p>Difficult case when array items right after static content hydrated</p>
+</section>

@@ -1,0 +1,33 @@
+<param name={$current-page} value={1} />
+<param name={$length} value={0} />
+<param name={$on-page} value={10} />
+<param name={$url} value="" />
+
+<if test={$length > 0}>
+	<variable name={$pages} value={num_int($length / $on-page)} />
+
+	<if test={$length % $on-page != 0}>
+		<variable name={$pages} value={$pages + 1} />
+	</if>
+
+	<if test={$pages > 1}>
+		<div class="pagination" data-component="pagination">
+			<for-each item={$page-number} from={[1..$pages]}>
+				<switch>
+					<case test={$current-page == $page-number}>
+						<span class="pagination__item pagination__item--active">{$page-number}</span>
+					</case>
+					<default>
+						<a
+							class="pagination__item"
+							href={$url ++ $page-number ++ "/"}
+							data-item={$page-number}
+						>
+							{$page-number}
+						</a>
+					</default>
+				</switch>
+			</for-each>
+		</div>
+	</if>
+</if>

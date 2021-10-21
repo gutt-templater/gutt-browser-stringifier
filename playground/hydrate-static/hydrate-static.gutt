@@ -1,0 +1,7 @@
+<section>
+	<h2>Static content hydrated</h2>
+
+	<p>Hydrated content</p>
+	<h3>Append hydrated text</h3>
+	<p>Reuse previous paragraph</p>
+</section>

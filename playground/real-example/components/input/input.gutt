@@ -1,0 +1,17 @@
+<param name={$class} value="" />
+<param name={$type} value="text" />
+<param name={$value} value="" />
+<param name={$name} value="" />
+<param name={$placeholder} value="" />
+<param name={$disabled} value={false} />
+<param name={$autocomplete} value="on" />
+
+<input
+	autocomplete={$autocomplete}
+	class={classes($class, "input")}
+	type={$type}
+	value={$value}
+	disabled={$disabled}
+	name={$name}
+	placeholder={$placeholder}
+/>

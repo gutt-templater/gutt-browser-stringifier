@@ -1,0 +1,12 @@
+<import name="x-input" from="../input/input.gutt" />
+
+<param name={$placeholder} value="" />
+
+<form data-component="fast-search">
+	<x-input
+		type="search"
+		value=""
+		name="search"
+		placeholder={$placeholder}
+	/>
+</form>

@@ -1,0 +1,3 @@
+<div class="content-editor" data-component="content-editor">
+	{$children}
+</div>

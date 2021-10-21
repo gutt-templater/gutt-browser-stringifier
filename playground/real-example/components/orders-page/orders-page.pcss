@@ -1,0 +1,81 @@
+.orders-page {
+	padding: 30px;
+}
+
+.orders-page__header {
+	display: flex;
+	justify-content: space-between;
+}
+
+.orders-page__search,
+.orders-page__region-switcher {
+	flex-basis: 350px;
+}
+
+.orders-page__region-switcher {
+	text-align: right;
+}
+
+.orders-page__body {
+	margin-top: 30px;
+}
+
+.orders-page__table {
+	width: 100%;
+	text-align: left;
+	font-size: 13px;
+}
+
+.orders-page__th {
+	font-size: 16px;
+	border-bottom: 1px solid #000;
+}
+
+.orders-page__th,
+.orders-page__td {
+	padding: 10px 20px;
+}
+
+.orders-page__th:first-child,
+.orders-page__td:first-child {
+	padding: 10px 0 10px 10px;
+}
+
+.orders-page__th:last-child,
+.orders-page__td:last-child {
+	padding-right: 0;
+}
+
+.orders-page__tbody .orders-page__tr:nth-child(even) .orders-page__td {
+	background: #f2f2f2;
+}
+
+.orders-page__status {
+	display: block;
+	width: 13px;
+	height: 13px;
+	border-radius: 50%;
+	line-height: 0;
+}
+
+.orders-page__status--succeeded {
+	background: #27ae60;
+}
+
+.orders-page__status--canceled {
+	background: #eb5757;
+}
+
+.orders-page__status--pending {
+	background: #f2994a;
+}
+
+.orders-page__summary {
+	display: inline-block;
+	margin: 0 10px;
+	font-size: 16px;
+}
+
+.orders-page__footer {
+	margin-top: 30px;
+}

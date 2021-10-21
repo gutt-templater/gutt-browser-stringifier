@@ -1,0 +1,11 @@
+<param name={$type} value="button" />
+<param name={$class} value="" />
+<param name={$disabled} value={false} />
+
+<button
+	class={classes($class, "button")}
+	type={$type}
+	disabled={$disabled}
+>
+	{$children}
+</button>

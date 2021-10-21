@@ -1,0 +1,17 @@
+<use-state name={$a} />
+<use-state name={$b} />
+
+<section>
+	<h2>Static content to hydrate</h2>
+	<if test={$a > $b}>
+		<span>Text came from if-statement and replaced</span>
+	</if>
+
+	<p>Hydrated content</p>
+
+	<if test={$a > $b}>
+		<p>Another one from if-statement already hydrated</p>
+	</if>
+
+	<p>Another hydrated</p>
+</section>

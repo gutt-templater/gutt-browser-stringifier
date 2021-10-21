@@ -1,0 +1,7 @@
+<import name="page-layout" from="./layout.gutt" />
+
+<page-layout>
+	<h1>Gutt browser stringifier playground</h1>
+
+	<p>Hydrated children</p>
+</page-layout>

@@ -1,0 +1,30 @@
+<import name="x-field" from="../field/field.gutt" />
+<import name="x-button" from="../button/button.gutt" />
+
+<use-state name={$auth} value={[
+	'email': '',
+	'password': '',
+	'error': ''
+]} />
+
+<div class="auth-form" data-component="auth-form">
+	<form class="auth-form__form" id="auth-form" method="post">
+		<x-field
+			label="Эл. почта"
+			type="email"
+			autocomplete="username"
+			name="email"
+		/>
+		<x-field
+			label="Пароль"
+			type="password"
+			autocomplete="current-password"
+			name="password"
+		/>
+
+		<div class="auth-form__buttons">
+			<x-button type="submit" disabled={!str_len($auth.email) || !str_len($auth.password)}>Войти</x-button>
+			<div class="auth-form__error">{$auth.error}</div>
+		</div>
+	</form>
+</div>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Gutt browser stringifier playground</title>
+	<style>
+		.scope {
+			padding: 1px 10px;
+			background: #ececec;
+		}
+
+		.scope + .scope {
+			margin-top: 20px;
+		}
+	</style>
+</head>
+<body>
+	<h1>Gutt browser stringifier playground</h1>
+
+	<div class="scope" id="app">
+		<section>
+			<h2>Array to hydrate</h2>
+
+			<p>Difficult case when array items right before static content</p><p>a</p><p>b</p><p>c</p><p>Difficult case when array items right after static content</p>
+		</section>
+	</div>
+
+	<script type="module">
+		const { default: arrayToHydrateTemplate } = await import('./hydrate-array.gutt.js')
+		const items = ['a', 'b', 'c']
+		const setState = await arrayToHydrateTemplate(document.getElementById('app'), {
+				items
+			})
+
+		setInterval(() => {
+			shake(items)
+			setState({ items })
+		}, 1000)
+
+		function shake(items) {
+			items.unshift(items.pop())
+		}
+	</script>
+</body>
+</html>

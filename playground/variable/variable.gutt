@@ -1,0 +1,7 @@
+<use-state name={$variable} />
+
+<section>
+	<h2 data-value={$variable}>There is variable to render</h2>
+
+	<p>{$variable}</p>
+</section>

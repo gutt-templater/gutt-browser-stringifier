@@ -1,0 +1,14 @@
+<import name="sub-component" from="./sub-component.gutt" />
+<import name="sub-component-with-children" from="./sub-component-with-children.gutt" />
+
+<section>
+	<h2>Hydrated imported component</h2>
+
+	<sub-component />
+
+	<p>Difficult case when component items right after static content</p>
+
+	<sub-component-with-children>
+		<s>I am children</s>
+	</sub-component-with-children>
+</section>
