@@ -499,7 +499,7 @@ await handleTemplate(7, layer)
 		}
 
 		nextSibling = element.firstChild
-		nodes = await createNodes(children, layer.lookahead[layerIndex][index] = copy(element.childNodes))
+		nodes = await createNodes(children, layer.lookahead[layerIndex][index + 1] = copy(element.childNodes))
 		nodes.forEach(function (child) {
 			if (!child.parentNode) {
 				if (nextSibling) {
@@ -696,10 +696,12 @@ await handleTemplate(7, layer)
 
 	async function removeLookahead(layer) {
 		await forEach(layer.lookahead, async function (lookaheads) {
-			await forEach(lookaheads, async function (lookahead) {
-				await forEach(lookahead, removeElement)
+			await forEach(lookaheads, async function (localLookahead) {
+				if (lookahead !== localLookahead) {
+					await forEach(localLookahead, removeElement)
 
-				lookahead.splice(0, lookahead.length)
+					localLookahead.splice(0, localLookahead.length)
+				}
 			})
 		})
 

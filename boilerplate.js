@@ -524,7 +524,7 @@ module.exports = function (ctx, params) {
 		}\n\
 \n\
 		nextSibling = element.firstChild\n\
-		nodes = ' + addIfModule('await ') + 'createNodes(children, layer.lookahead[layerIndex][index] = copy(element.childNodes))\n\
+		nodes = ' + addIfModule('await ') + 'createNodes(children, layer.lookahead[layerIndex][index + 1] = copy(element.childNodes))\n\
 		nodes.forEach(function (child) {\n\
 			if (!child.parentNode) {\n\
 				if (nextSibling) {\n\
@@ -721,10 +721,12 @@ module.exports = function (ctx, params) {
 \n\
 	' + addIfModule('async ') + 'function removeLookahead(layer) {\n\
 		' + addIfModule('await ') + 'forEach(layer.lookahead, ' + addIfModule('async ') + 'function (lookaheads) {\n\
-			' + addIfModule('await ') + 'forEach(lookaheads, ' + addIfModule('async ') + 'function (lookahead) {\n\
-				' + addIfModule('await ') + 'forEach(lookahead, removeElement)\n\
+			' + addIfModule('await ') + 'forEach(lookaheads, ' + addIfModule('async ') + 'function (localLookahead) {\n\
+				if (lookahead !== localLookahead) {\n\
+					' + addIfModule('await ') + 'forEach(localLookahead, removeElement)\n\
 \n\
-				lookahead.splice(0, lookahead.length)\n\
+					localLookahead.splice(0, localLookahead.length)\n\
+				}\n\
 			})\n\
 		})\n\
 \n\
