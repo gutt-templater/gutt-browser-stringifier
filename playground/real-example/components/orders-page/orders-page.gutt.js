@@ -226,8 +226,7 @@ const main = async function (mountNode) {
 
 	var instructions = {
 0: async function (layer) {
-	layer.elements[0] = await createNodes([
-'\n\n',
+	layer.elements[0] = await createNodes(['\n\n',
 ['section', {"class": "orders-page"}, [
 '\n	',
 ['div', {"class": "orders-page__header"}, [
@@ -308,8 +307,7 @@ const main = async function (mountNode) {
 '\n	'
 ], layer, 0, 17],
 '\n'
-], layer, 0, 0]
-], layer.lookahead[0][0])
+], layer, 0, 0]], layer.lookahead[0][0])
 	insertLayerElements(layer, 0)
 },
 1: function (layer) {
@@ -346,8 +344,7 @@ await iteration(field, item)
 
 },
 7: async function (layer) {
-	layer.elements[7] = await createNodes([
-'\n\n					',
+	layer.elements[7] = await createNodes(['\n\n					',
 ['tr', {"class": "orders-page__tr"}, [
 '\n						',
 ['td', {"class": "orders-page__td"}, [
@@ -384,8 +381,7 @@ await iteration(field, item)
 ], layer, 7, 7],
 '\n					'
 ], layer, 7, 0],
-'\n				'
-], layer.lookahead[7][0])
+'\n				'], layer.lookahead[7][0])
 	insertLayerElements(layer, 7)
 },
 8: function (layer) {
@@ -430,25 +426,25 @@ var initialScope = {"length": scope['orders']['total'],"on-page": 100,"url": "/m
 	var templates = {
 0: async function (layer) {
 	layer.index = -1
-await handleTemplate(0, layer)
-await handleTemplate(1, layer)
-await handleTemplate(2, layer)
-await handleTemplate(4, layer)
-await handleTemplate(5, layer)
-await handleTemplate(6, layer)
-await handleTemplate(14, layer)
+	await handleTemplate(0, layer)
+	await handleTemplate(1, layer)
+	await handleTemplate(2, layer)
+	await handleTemplate(4, layer)
+	await handleTemplate(5, layer)
+	await handleTemplate(6, layer)
+	await handleTemplate(14, layer)
 
 	await handleTail(layer)
 },
 7: async function (layer) {
 	layer.index = -1
-await handleTemplate(7, layer)
-await handleTemplate(8, layer)
-await handleTemplate(9, layer)
-await handleTemplate(10, layer)
-await handleTemplate(11, layer)
-await handleTemplate(12, layer)
-await handleTemplate(13, layer)
+	await handleTemplate(7, layer)
+	await handleTemplate(8, layer)
+	await handleTemplate(9, layer)
+	await handleTemplate(10, layer)
+	await handleTemplate(11, layer)
+	await handleTemplate(12, layer)
+	await handleTemplate(13, layer)
 
 	await handleTail(layer)
 }
@@ -709,6 +705,65 @@ await handleTemplate(13, layer)
 		}
 
 		return document.createTextNode(value)
+	}
+
+	async function createScript(attributes, body, layer, lookahead) {
+		var lookaheadNode
+
+		lookahead.forEach(function (node, index) {
+			if (node.nodeType === 1 && node.nodeName.toLowerCase() === 'script' && node.innerHTML === body && sameAttributes(attributes, node.attributes)) {
+				lookaheadNode = node
+				lookahead.splice(index, 1)
+			}
+		})
+
+		var element = lookaheadNode || document.createElement('script')
+
+		element.innerHTML = body
+		applyAttributes(element, attributes)
+
+		return [element]
+	}
+
+	async function createStyle(attributes, body, layer, lookahead) {
+		var lookaheadNode
+
+		lookahead.forEach(function (node, index) {
+			if (node.nodeType === 1 && node.nodeName.toLowerCase() === 'style' && node.innerHTML === body && sameAttributes(attributes, node.attributes)) {
+				lookaheadNode = node
+				lookahead.splice(index, 1)
+			}
+		})
+
+		var element = lookaheadNode || document.createElement('style')
+
+		element.innerHTML = body
+		applyAttributes(element, attributes)
+
+		return [element]
+	}
+
+	function sameAttributes(nextAttributes, currentAttributesMap) {
+		var currentAttributes = {}
+		var index = 0
+
+		for (; index < currentAttributesMap.length; index++) {
+			currentAttributes[currentAttributesMap[index].nodeName] = currentAttributesMap[index].nodeValue
+		}
+
+		for (index in nextAttributes) {
+			if (typeof currentAttributes[index] === 'undefined' || currentAttributes[index] !== nextAttributes[index]) {
+				return false
+			}
+		}
+
+		for (index in currentAttributes) {
+			if (typeof nextAttributes[index] === 'undefined' || currentAttributes[index] !== nextAttributes[index]) {
+				return false
+			}
+		}
+
+		return true
 	}
 
 	function createAnchor(layer, index) {

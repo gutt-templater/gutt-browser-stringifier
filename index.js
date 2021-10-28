@@ -77,7 +77,7 @@ function handleDefaultTag(node, template, layer, ctx) {
 
   return templates.createElement(
     node.name,
-    staticAttributes.join(', '),
+    staticAttributes,
     walk(node.firstChild, template, layer, ctx),
     layer,
     index
@@ -124,7 +124,10 @@ function handleComponent(node, template, layer, ctx) {
 
   if (node.firstChild) {
     ctx.templates[template] += templates.chainStatePush(childrenLayer, ctx.params.type === 'module')
-    ctx.createInstructions[childrenLayer] = '[' + walk(node.firstChild, template, layer, ctx) + ']'
+    ctx.createInstructions[childrenLayer] = templates.createInstriction(
+      walk(node.firstChild, template, layer, ctx),
+      childrenLayer
+    )
   }
 
   return templates.createAnchor(nextLayer)
@@ -300,6 +303,152 @@ function handleAttributeStatement(node, template, layer, ctx) {
   return ''
 }
 
+function scriptNodeHandler(node, template, layer, ctx) {
+  var nextLayer = ++ctx.index
+
+  if (typeof ctx.tags[layer] === 'undefined') {
+    ctx.tags[layer] = -1
+    ctx.dynamicAttributes[layer] = {}
+  }
+
+  var index = ++ctx.tags[layer]
+  var staticAttributes = []
+
+  node.attrs.forEach(function (attr) {
+    if (attr.name.type === 'string') {
+      if (attr.value === null) {
+        staticAttributes.push(
+          templates.createObjectItem(
+            handleNode(attr.name, template, layer, ctx),
+            '""'
+          )
+        )
+      } else if (attr.value.type === 'string') {
+        staticAttributes.push(
+          templates.createObjectItem(
+            handleNode(attr.name, template, layer, ctx),
+            handleNode(attr.value, template, layer, ctx)
+          )
+        )
+      } else {
+        if (typeof ctx.dynamicAttributes[layer][index] === 'undefined') {
+          ctx.dynamicAttributes[layer][index] = []
+        }
+
+        ctx.dynamicAttributes[layer][index].push(
+          templates.createObjectItem(
+            handleNode(attr.name, template, layer, ctx),
+            handleNode(attr.value, template, layer, ctx)
+          )
+        )
+      }
+    }
+  })
+
+  var hasDynamicAttributes = typeof ctx.dynamicAttributes[layer][index] !== 'undefined' && ctx.dynamicAttributes[layer][index].length > 0
+
+  if (hasDynamicAttributes) {
+    var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
+    var instruction = templates.handleAttributes(
+      layer,
+      index,
+      ctx.dynamicAttributes[layer][index].join(',\n')
+    )
+
+    if (ctx.dynamicNodes[ctx.index] === 'EXECUTE') {
+      ctx.executeInstructions[ctx.index] += '\n' + instruction
+    } else {
+      var nextLayer = ++ctx.index
+
+      ctx.executeInstructions[nextLayer] = instruction
+      ctx.dynamicNodes[nextLayer] = 'EXECUTE'
+      ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
+    }
+  }
+
+  ctx.createInstructions[nextLayer] = templates.createScript(
+    staticAttributes,
+    escapeString(node.body.str),
+    nextLayer
+  )
+  ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
+
+  return templates.createAnchor(nextLayer)
+}
+
+function styleNodeHandler(node, template, layer, ctx) {
+  var nextLayer = ++ctx.index
+
+  if (typeof ctx.tags[layer] === 'undefined') {
+    ctx.tags[layer] = -1
+    ctx.dynamicAttributes[layer] = {}
+  }
+
+  var index = ++ctx.tags[layer]
+  var staticAttributes = []
+
+  node.attrs.forEach(function (attr) {
+    if (attr.name.type === 'string') {
+      if (attr.value === null) {
+        staticAttributes.push(
+          templates.createObjectItem(
+            handleNode(attr.name, template, layer, ctx),
+            '""'
+          )
+        )
+      } else if (attr.value.type === 'string') {
+        staticAttributes.push(
+          templates.createObjectItem(
+            handleNode(attr.name, template, layer, ctx),
+            handleNode(attr.value, template, layer, ctx)
+          )
+        )
+      } else {
+        if (typeof ctx.dynamicAttributes[layer][index] === 'undefined') {
+          ctx.dynamicAttributes[layer][index] = []
+        }
+
+        ctx.dynamicAttributes[layer][index].push(
+          templates.createObjectItem(
+            handleNode(attr.name, template, layer, ctx),
+            handleNode(attr.value, template, layer, ctx)
+          )
+        )
+      }
+    }
+  })
+
+  var hasDynamicAttributes = typeof ctx.dynamicAttributes[layer][index] !== 'undefined' && ctx.dynamicAttributes[layer][index].length > 0
+
+  if (hasDynamicAttributes) {
+    var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
+    var instruction = templates.handleAttributes(
+      layer,
+      index,
+      ctx.dynamicAttributes[layer][index].join(',\n')
+    )
+
+    if (ctx.dynamicNodes[ctx.index] === 'EXECUTE') {
+      ctx.executeInstructions[ctx.index] += '\n' + instruction
+    } else {
+      var nextLayer = ++ctx.index
+
+      ctx.executeInstructions[nextLayer] = instruction
+      ctx.dynamicNodes[nextLayer] = 'EXECUTE'
+      ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
+    }
+  }
+
+  ctx.createInstructions[nextLayer] = templates.createStyle(
+    staticAttributes,
+    escapeString(node.body.str),
+    nextLayer
+  )
+  ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
+
+  return templates.createAnchor(nextLayer)
+}
+
 function escapeString(text) {
   return text.replace(/\n/g, '\\n').replace(/\'/g, '\\\'')
 }
@@ -360,8 +509,9 @@ function handleNode(node, template, layer, ctx) {
     case 'logic-node':
       return logicNodeHandler(node, template, layer, ctx)
     case 'script':
-      // console.log(node)
-      return ''
+      return scriptNodeHandler(node, template, layer, ctx)
+    case 'style':
+      return styleNodeHandler(node, template, layer, ctx)
     default:
       return ''
   }
@@ -372,7 +522,7 @@ function handleTemplate(node, template, layer, ctx) {
     ctx.templates[template] = templates.chainStatePush(layer, ctx.params.type === 'module')
   }
 
-  ctx.createInstructions[layer] = '[\n' + walk(node, template, layer, ctx) + '\n]'
+  ctx.createInstructions[layer] = templates.createInstriction(walk(node, template, layer, ctx), layer)
 }
 
 function walk(node, template, layer, ctx) {

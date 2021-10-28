@@ -16,6 +16,5 @@
 	<div id="app">
 		{$children}
 	</div>
-	<script src="/client/out/dist/app.js"></script>
 </body>
 </html>

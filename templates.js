@@ -1,6 +1,10 @@
 module.exports = {
 	chainStatePush: function (layer, isModule) {
-		return (isModule ? 'await ' : '') + 'handleTemplate(' + layer + ', layer)\n'
+		return '\t' + (isModule ? 'await ' : '') + 'handleTemplate(' + layer + ', layer)\n'
+	},
+
+	createInstriction(children, layer) {
+		return 'createNodes([' + children + '], layer.lookahead[' + layer + '][0])'
 	},
 
 	createAnchor: function (layer) {
@@ -12,7 +16,15 @@ module.exports = {
 	},
 
 	createElement: function (name, attributes, children, layer, index) {
-		return '[\'' + name + '\', {' + attributes + '}, [\n' + children + '\n], layer, ' + layer + ', ' + index + ']'
+		return '[\'' + name + '\', {' + attributes.join(', ') + '}, [\n' + children + '\n], layer, ' + layer + ', ' + index + ']'
+	},
+
+	createScript: function (attributes, body, layer) {
+		return 'createScript({' + attributes.join(', ') + '}, \'' + body + '\', layer, layer.lookahead[' + layer + '][0])'
+	},
+
+	createStyle: function (attributes, body, layer) {
+		return 'createStyle({' + attributes.join(', ') + '}, \'' + body + '\', layer, layer.lookahead[' + layer + '][0])'
 	},
 
 	handleAttributes: function (layer, index, attributes) {

@@ -33,7 +33,7 @@ module.exports = function (ctx, params) {
 	for (field in ctx.createInstructions) {
 		if (ctx.createInstructions.hasOwnProperty(field)) {
 			instructions[field] = field + ': ' + addIfModule('async ') + 'function (layer) {\n\
-	layer.elements[' + field + '] = ' + addIfModule('await ') + 'createNodes(' + ctx.createInstructions[field] + ', layer.lookahead[' + field + '][0])\n\
+	layer.elements[' + field + '] = ' + addIfModule('await ') + ctx.createInstructions[field] + '\n\
 	insertLayerElements(layer, ' + field + ')\n\
 }'
 		}
@@ -555,6 +555,65 @@ module.exports = function (ctx, params) {
 		}\n\
 \n\
 		return document.createTextNode(value)\n\
+	}\n\
+\n\
+	' + addIfModule('async ') + 'function createScript(attributes, body, layer, lookahead) {\n\
+		var lookaheadNode\n\
+\n\
+		lookahead.forEach(function (node, index) {\n\
+			if (node.nodeType === 1 && node.nodeName.toLowerCase() === \'script\' && node.innerHTML === body && sameAttributes(attributes, node.attributes)) {\n\
+				lookaheadNode = node\n\
+				lookahead.splice(index, 1)\n\
+			}\n\
+		})\n\
+\n\
+		var element = lookaheadNode || document.createElement(\'script\')\n\
+\n\
+		element.innerHTML = body\n\
+		applyAttributes(element, attributes)\n\
+\n\
+		return [element]\n\
+	}\n\
+\n\
+	' + addIfModule('async ') + 'function createStyle(attributes, body, layer, lookahead) {\n\
+		var lookaheadNode\n\
+\n\
+		lookahead.forEach(function (node, index) {\n\
+			if (node.nodeType === 1 && node.nodeName.toLowerCase() === \'style\' && node.innerHTML === body && sameAttributes(attributes, node.attributes)) {\n\
+				lookaheadNode = node\n\
+				lookahead.splice(index, 1)\n\
+			}\n\
+		})\n\
+\n\
+		var element = lookaheadNode || document.createElement(\'style\')\n\
+\n\
+		element.innerHTML = body\n\
+		applyAttributes(element, attributes)\n\
+\n\
+		return [element]\n\
+	}\n\
+\n\
+	function sameAttributes(nextAttributes, currentAttributesMap) {\n\
+		var currentAttributes = {}\n\
+		var index = 0\n\
+\n\
+		for (; index < currentAttributesMap.length; index++) {\n\
+			currentAttributes[currentAttributesMap[index].nodeName] = currentAttributesMap[index].nodeValue\n\
+		}\n\
+\n\
+		for (index in nextAttributes) {\n\
+			if (typeof currentAttributes[index] === \'undefined\' || currentAttributes[index] !== nextAttributes[index]) {\n\
+				return false\n\
+			}\n\
+		}\n\
+\n\
+		for (index in currentAttributes) {\n\
+			if (typeof nextAttributes[index] === \'undefined\' || currentAttributes[index] !== nextAttributes[index]) {\n\
+				return false\n\
+			}\n\
+		}\n\
+\n\
+		return true\n\
 	}\n\
 \n\
 	function createAnchor(layer, index) {\n\
