@@ -14,13 +14,13 @@ function extractValuesFromAttrs(attrs, fields) {
   return result
 }
 
-function handleDefaultTag(node, template, layer, ctx) {
-  if (typeof ctx.tags[layer] === 'undefined') {
-    ctx.tags[layer] = -1
-    ctx.dynamicAttributes[layer] = {}
+function handleDefaultTag(node, templateIndex, instructionIndex, ctx) {
+  if (typeof ctx.tags[instructionIndex] === 'undefined') {
+    ctx.tags[instructionIndex] = -1
+    ctx.dynamicAttributes[instructionIndex] = {}
   }
 
-  var index = ++ctx.tags[layer]
+  var index = ++ctx.tags[instructionIndex]
   var staticAttributes = []
 
   node.attrs.forEach(function (attr) {
@@ -28,290 +28,309 @@ function handleDefaultTag(node, template, layer, ctx) {
       if (attr.value === null) {
         staticAttributes.push(
           templates.createObjectItem(
-            handleNode(attr.name, template, layer, ctx),
+            handleNode(attr.name, templateIndex, instructionIndex, ctx),
             '""'
           )
         )
       } else if (attr.value.type === 'string') {
         staticAttributes.push(
           templates.createObjectItem(
-            handleNode(attr.name, template, layer, ctx),
-            handleNode(attr.value, template, layer, ctx)
+            handleNode(attr.name, templateIndex, instructionIndex, ctx),
+            handleNode(attr.value, templateIndex, instructionIndex, ctx)
           )
         )
       } else {
-        if (typeof ctx.dynamicAttributes[layer][index] === 'undefined') {
-          ctx.dynamicAttributes[layer][index] = []
+        if (typeof ctx.dynamicAttributes[instructionIndex][index] === 'undefined') {
+          ctx.dynamicAttributes[instructionIndex][index] = []
         }
 
-        ctx.dynamicAttributes[layer][index].push(
+        ctx.dynamicAttributes[instructionIndex][index].push(
           templates.createObjectItem(
-            handleNode(attr.name, template, layer, ctx),
-            handleNode(attr.value, template, layer, ctx)
+            handleNode(attr.name, templateIndex, instructionIndex, ctx),
+            handleNode(attr.value, templateIndex, instructionIndex, ctx)
           )
         )
       }
     }
   })
 
-  var hasDynamicAttributes = typeof ctx.dynamicAttributes[layer][index] !== 'undefined' && ctx.dynamicAttributes[layer][index].length > 0
+  var hasDynamicAttributes = typeof ctx.dynamicAttributes[instructionIndex][index] !== 'undefined' && ctx.dynamicAttributes[instructionIndex][index].length > 0
 
   if (hasDynamicAttributes) {
-    var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
     var instruction = templates.handleAttributes(
-      layer,
+      instructionIndex,
       index,
-      ctx.dynamicAttributes[layer][index].join(',\n')
+      ctx.dynamicAttributes[instructionIndex][index]
     )
 
     if (ctx.dynamicNodes[ctx.index] === 'EXECUTE') {
-      ctx.executeInstructions[ctx.index] += '\n' + instruction
+      ctx.executeInstructions[ctx.index] += instruction
     } else {
-      var nextLayer = ++ctx.index
+      var nextInstructionIndex = ++ctx.index
 
-      ctx.executeInstructions[nextLayer] = instruction
-      ctx.dynamicNodes[nextLayer] = 'EXECUTE'
-      ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
+      ctx.executeInstructions[nextInstructionIndex] = instruction
+      ctx.dynamicNodes[nextInstructionIndex] = 'EXECUTE'
+      ctx.templates[templateIndex] += templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
     }
   }
 
   return templates.createElement(
     node.name,
     staticAttributes,
-    walk(node.firstChild, template, layer, ctx),
-    layer,
+    walk(node.firstChild, templateIndex, instructionIndex, ctx),
+    instructionIndex,
     index
   )
 }
 
-function logicNodeHandler(node, template, layer, ctx) {
-  var nextLayer = ++ctx.index
+function logicNodeHandler(node, templateIndex, instructionIndex, ctx) {
+  var nextInstructionIndex = ++ctx.index
 
   if (node.expr.type === 'var' && node.expr.value === 'children') {
-    return 'layer.anchors[' + nextLayer + '] = childrenAnchor'
+    return templates.setChildrenAnchor(nextInstructionIndex)
   } else {
-    ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
-    ctx.textInstructions[nextLayer] =
-      templates.handleTextNode(nextLayer, logicHandler(node, ctx))
-    ctx.dynamicNodes[nextLayer] = 'TEXT_NODE'
+    ctx.templates[templateIndex] += templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
+    ctx.textInstructions[nextInstructionIndex] =
+      templates.handleTextNode(nextInstructionIndex, logicHandler(node, ctx))
+    ctx.dynamicNodes[nextInstructionIndex] = 'TEXT_NODE'
   }
 
-  return templates.createAnchor(nextLayer)
+  return templates.createAnchor(nextInstructionIndex)
 }
 
-function handleComponent(node, template, layer, ctx) {
-  var nextLayer = ++ctx.index
+function handleComponent(node, templateIndex, instructionIndex, ctx) {
+  var nextInstructionIndex = ++ctx.index
   var params = []
   var children
-  var childrenLayer = ++ctx.index
+  var childrenInstructionIndex = ++ctx.index
 
   node.attrs.forEach(function (attr) {
     params.push(templates.createObjectItem(
-      handleNode(attr.name, template, nextLayer, ctx),
-      handleNode(attr.value, template, nextLayer, ctx)
+      handleNode(attr.name, templateIndex, nextInstructionIndex, ctx),
+      handleNode(attr.value, templateIndex, nextInstructionIndex, ctx)
     ))
   })
 
-  ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
-  ctx.componentInstuctions[nextLayer] = templates.componentInstuction(
-    nextLayer,
+  ctx.templates[templateIndex] += templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
+  ctx.componentInstuctions[nextInstructionIndex] = templates.componentInstuction(
+    nextInstructionIndex,
     node.name,
-    params.join(','),
+    params,
     ctx.params.type === 'module',
-    childrenLayer
+    childrenInstructionIndex
   )
-  ctx.dynamicNodes[nextLayer] = 'COMPONENT'
+  ctx.dynamicNodes[nextInstructionIndex] = 'COMPONENT'
 
   if (node.firstChild) {
-    ctx.templates[template] += templates.chainStatePush(childrenLayer, ctx.params.type === 'module')
-    ctx.createInstructions[childrenLayer] = templates.createInstriction(
-      walk(node.firstChild, template, layer, ctx),
-      childrenLayer
+    ctx.templates[templateIndex] += templates.chainStatePush(childrenInstructionIndex, ctx.params.type === 'module')
+    ctx.createInstructions[childrenInstructionIndex] = templates.createInstriction(
+      walk(node.firstChild, templateIndex, instructionIndex, ctx),
+      childrenInstructionIndex
     )
   }
 
-  return templates.createAnchor(nextLayer)
+  return templates.createAnchor(nextInstructionIndex)
 }
 
-function handleImportStatement(node, template, layer, ctx) {
+function handleImportStatement(node, templateIndex, instructionIndex, ctx) {
   var params = extractValuesFromAttrs(node.attrs, ['name', 'from'])
 
   if (ctx.params.type === 'module') {
     params.from.value += '.js'
   }
 
-  ctx.imports[params.name.value] = handleNode(params.from, template, layer, ctx)
+  ctx.imports[params.name.value] = handleNode(params.from, templateIndex, instructionIndex, ctx)
 
   return ''
 }
 
-function handleUseStateStatement(node, template, layer, ctx) {
+function handleUseStateStatement(node, templateIndex, instructionIndex, ctx) {
   var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
-  var name = handleNode(params.name, template, layer, ctx)
-  var instruction = (
-    typeof params.value !== 'undefined'
-      ? 'if (typeof state[\'' + params.name.expr.value + '\'] === \'undefined\') ' +
-        logicHandler(params.name, ctx, true) + ' = ' + handleNode(params.value, template, layer, ctx) + '; else '
-      : ''
-    ) +
-    logicHandler(params.name, ctx, true) + ' = state[\'' + params.name.expr.value + '\']'
+  var name = handleNode(params.name, templateIndex, instructionIndex, ctx)
+  var instruction = templates.useStateStatement(
+    params.name.expr.value,
+    logicHandler(params.name, ctx, true),
+    typeof params.value !== 'undefined' ? handleNode(params.value, templateIndex, instructionIndex, ctx) : ''
+  )
 
   if (ctx.dynamicNodes[ctx.index] === 'EXECUTE') {
-    ctx.executeInstructions[ctx.index] += '\n' + instruction
+    ctx.executeInstructions[ctx.index] += instruction
   } else {
-    var nextLayer = ++ctx.index
+    var nextInstructionIndex = ++ctx.index
 
-    ctx.executeInstructions[nextLayer] = instruction
-    ctx.dynamicNodes[nextLayer] = 'EXECUTE'
-    ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
+    ctx.executeInstructions[nextInstructionIndex] = instruction
+    ctx.dynamicNodes[nextInstructionIndex] = 'EXECUTE'
+    ctx.templates[templateIndex] += templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
   }
 
   return ''
 }
 
-function handleVariableStatement(node, template, layer, ctx) {
+function handleVariableStatement(node, templateIndex, instructionIndex, ctx) {
   var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
-  var instruction = logicHandler(params.name, ctx, true) + ' = ' + handleNode(params.value, template, layer, ctx)
+  var instruction = templates.assertion(
+    logicHandler(params.name, ctx, true),
+    handleNode(params.value, templateIndex, instructionIndex, ctx)
+  )
 
   if (ctx.dynamicNodes[ctx.index] === 'EXECUTE') {
-    ctx.executeInstructions[ctx.index] += '\n' + instruction
+    ctx.executeInstructions[ctx.index] += instruction
   } else {
-    var nextLayer = ++ctx.index
+    var nextInstructionIndex = ++ctx.index
 
-    ctx.executeInstructions[nextLayer] = instruction
-    ctx.dynamicNodes[nextLayer] = 'EXECUTE'
-    ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
+    ctx.executeInstructions[nextInstructionIndex] = instruction
+    ctx.dynamicNodes[nextInstructionIndex] = 'EXECUTE'
+    ctx.templates[templateIndex] += templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
   }
 
   return ''
 }
 
-function handleParamStatement(node, template, layer, ctx) {
-  var nextLayer = ++ctx.index
+function handleParamStatement(node, templateIndex, instructionIndex, ctx) {
+  var nextInstructionIndex = ++ctx.index
   var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
-  var name = handleNode(params.name, template, layer, ctx)
 
-  ctx.executeInstructions[nextLayer] = 'if (typeof ' + logicHandler(params.name, ctx) + ' === \'undefined\') ' +
-    logicHandler(params.name, ctx, true) + ' = ' + handleNode(params.value, template, layer, ctx) + '; else ' +
-    logicHandler(params.name, ctx, true) + ' = ' + name
+  ctx.executeInstructions[nextInstructionIndex] = templates.executeInstruction(
+    logicHandler(params.name, ctx),
+    handleNode(params.value, templateIndex, instructionIndex, ctx)
+  )
 
-  ctx.dynamicNodes[nextLayer] = 'EXECUTE'
-  ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
-
-  return ''
-}
-
-function handleSwitchStatement(node, template, layer, ctx) {
-  return walk(node.firstChild, template, layer, ctx)
-}
-
-function handleCaseStatement(node, template, layer, ctx) {
-  if (node.firstChild) {
-    var params = extractValuesFromAttrs(node.attrs, ['test'])
-    var nextLayer = ++ctx.index
-
-    ctx.templates[template] += (node.previousSibling ? 'else ' : '') + 'if (' + logicHandler(params.test, ctx) + ') {\n' +
-      templates.chainStatePush(nextLayer, ctx.params.type === 'module')
-
-    handleTemplate(node.firstChild, template, nextLayer, ctx)
-
-    ctx.templates[template] += '}\n'
-    ctx.index++
-
-    return templates.createAnchor(nextLayer)
-  }
-}
-
-function handleDefaultStatement(node, template, layer, ctx) {
-  if (node.firstChild) {
-    var nextLayer = ++ctx.index
-
-    ctx.templates[template] += 'else {\n' +
-      templates.chainStatePush(nextLayer, ctx.params.type === 'module')
-
-    handleTemplate(node.firstChild, template, nextLayer, ctx)
-
-    ctx.templates[template] += '}\n'
-    ctx.index++
-
-    return templates.createAnchor(nextLayer)
-  }
-}
-
-function handleIfStatement(node, template, layer, ctx) {
-  if (node.firstChild) {
-    var params = extractValuesFromAttrs(node.attrs, ['test'])
-    var nextLayer = ++ctx.index
-
-    ctx.templates[template] += 'if (' + logicHandler(params.test, ctx) + ') {\n' +
-      templates.chainStatePush(nextLayer, ctx.params.type === 'module')
-
-    handleTemplate(node.firstChild, template, nextLayer, ctx)
-
-    ctx.templates[template] += '}\n'
-    ctx.index++
-
-    return templates.createAnchor(nextLayer)
-  }
+  ctx.dynamicNodes[nextInstructionIndex] = 'EXECUTE'
+  ctx.templates[templateIndex] += templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
 
   return ''
 }
 
-function handleForEachStatement(node, template, layer, ctx) {
-  var nextLayer = ++ctx.index
+function handleSwitchStatement(node, templateIndex, instructionIndex, ctx) {
+  return walk(node.firstChild, templateIndex, instructionIndex, ctx)
+}
+
+function handleCaseStatement(node, templateIndex, instructionIndex, ctx) {
+  if (node.firstChild) {
+    var params = extractValuesFromAttrs(node.attrs, ['test'])
+    var nextInstructionIndex = ++ctx.index
+
+    ctx.templates[templateIndex] += (node.previousSibling ? 'else ' : '') + 'if (' + logicHandler(params.test, ctx) + ') {\n' +
+      templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
+
+    handleTemplate(node.firstChild, templateIndex, nextInstructionIndex, ctx)
+
+    ctx.templates[templateIndex] += '}\n'
+    ctx.index++
+
+    return templates.createAnchor(nextInstructionIndex)
+  }
+}
+
+function handleDefaultStatement(node, templateIndex, instructionIndex, ctx) {
+  if (node.firstChild) {
+    var nextInstructionIndex = ++ctx.index
+
+    ctx.templates[templateIndex] += 'else {\n' +
+      templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
+
+    handleTemplate(node.firstChild, templateIndex, nextInstructionIndex, ctx)
+
+    ctx.templates[templateIndex] += '}\n'
+    ctx.index++
+
+    return templates.createAnchor(nextInstructionIndex)
+  }
+}
+
+function handleIfStatement(node, templateIndex, instructionIndex, ctx) {
+  if (node.firstChild) {
+    var params = extractValuesFromAttrs(node.attrs, ['test'])
+    var nextInstructionIndex = ++ctx.index
+
+    ctx.templates[templateIndex] += 'if (' + logicHandler(params.test, ctx) + ') {\n' +
+      templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
+
+    handleTemplate(node.firstChild, templateIndex, nextInstructionIndex, ctx)
+
+    ctx.templates[templateIndex] += '}\n'
+    ctx.index++
+
+    return templates.createAnchor(nextInstructionIndex)
+  }
+
+  return ''
+}
+
+function handleForEachStatement(node, templateIndex, instructionIndex, ctx) {
+  var nextInstructionIndex = ++ctx.index
   var params = extractValuesFromAttrs(node.attrs, ['item', 'from', 'key'])
 
-  ctx.arrayInstructions[nextLayer] = templates.handleArray(
-    nextLayer,
+  ctx.arrayInstructions[nextInstructionIndex] = templates.handleArray(
+    nextInstructionIndex,
     logicHandler(params.from, ctx),
     logicHandler(params.item, ctx, true),
     ctx.params.type === 'module',
     typeof params.key !== 'undefined' ? logicHandler(params.key, ctx, true) + ' = field' : ''
   )
-  ctx.dynamicNodes[nextLayer] = 'ARRAY'
+  ctx.dynamicNodes[nextInstructionIndex] = 'ARRAY'
 
   if (node.firstChild) {
-    ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
+    ctx.templates[templateIndex] += templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
 
     handleTemplate(node.firstChild, ++ctx.index, ctx.index, ctx)
   }
 
-  return templates.createAnchor(nextLayer)
+  return templates.createAnchor(nextInstructionIndex)
 }
 
-function handleAttributeStatement(node, template, layer, ctx) {
+function handleAttributeStatement(node, templateIndex, instructionIndex, ctx) {
   var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
-  var index = ctx.tags[layer]
+  var previousInstictionIndex = instructionIndex
+  var index = ctx.tags[--previousInstictionIndex]
 
-  console.log(node.name)
-  if (!ctx.dynamicAttributes[layer]) {
-    console.log(ctx.dynamicAttributes, layer)
-    console.log(ctx.tags)
+  while (typeof index === 'undefined') {
+    index = ctx.tags[--previousInstictionIndex]
   }
 
-  if (typeof ctx.dynamicAttributes[layer][index] === 'undefined') {
-    ctx.dynamicAttributes[layer][index] = []
+  if (!ctx.dynamicAttributes[previousInstictionIndex]) {
+    ctx.dynamicAttributes[previousInstictionIndex] = {}
   }
 
-  ctx.dynamicAttributes[layer][index].push(
+  if (typeof ctx.dynamicAttributes[previousInstictionIndex][index] === 'undefined') {
+    ctx.dynamicAttributes[previousInstictionIndex][index] = []
+  }
+
+  ctx.dynamicAttributes[previousInstictionIndex][index].push(
     templates.createObjectItem(
-      handleNode(params.name, template, layer, ctx),
-      handleNode(params.value, template, layer, ctx)
+      handleNode(params.name, templateIndex, instructionIndex, ctx),
+      handleNode(params.value, templateIndex, instructionIndex, ctx)
     )
   )
+
+  var instruction = templates.handleAttributes(
+    previousInstictionIndex,
+    index,
+    ctx.dynamicAttributes[previousInstictionIndex][index]
+  )
+
+  if (ctx.dynamicNodes[ctx.index] === 'EXECUTE') {
+    ctx.executeInstructions[ctx.index] += instruction
+  } else {
+    var nextInstructionIndex = ++ctx.index
+
+    ctx.executeInstructions[nextInstructionIndex] = instruction
+    ctx.dynamicNodes[nextInstructionIndex] = 'EXECUTE'
+    ctx.templates[templateIndex] += templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
+  }
 
   return ''
 }
 
-function scriptNodeHandler(node, template, layer, ctx) {
-  var nextLayer = ++ctx.index
+function scriptNodeHandler(node, templateIndex, instructionIndex, ctx) {
+  var nextInstructionIndex = ++ctx.index
 
-  if (typeof ctx.tags[layer] === 'undefined') {
-    ctx.tags[layer] = -1
-    ctx.dynamicAttributes[layer] = {}
+  if (typeof ctx.tags[instructionIndex] === 'undefined') {
+    ctx.tags[instructionIndex] = -1
+    ctx.dynamicAttributes[instructionIndex] = {}
   }
 
-  var index = ++ctx.tags[layer]
+  var index = ++ctx.tags[instructionIndex]
   var staticAttributes = []
 
   node.attrs.forEach(function (attr) {
@@ -319,72 +338,71 @@ function scriptNodeHandler(node, template, layer, ctx) {
       if (attr.value === null) {
         staticAttributes.push(
           templates.createObjectItem(
-            handleNode(attr.name, template, layer, ctx),
+            handleNode(attr.name, templateIndex, instructionIndex, ctx),
             '""'
           )
         )
       } else if (attr.value.type === 'string') {
         staticAttributes.push(
           templates.createObjectItem(
-            handleNode(attr.name, template, layer, ctx),
-            handleNode(attr.value, template, layer, ctx)
+            handleNode(attr.name, templateIndex, instructionIndex, ctx),
+            handleNode(attr.value, templateIndex, instructionIndex, ctx)
           )
         )
       } else {
-        if (typeof ctx.dynamicAttributes[layer][index] === 'undefined') {
-          ctx.dynamicAttributes[layer][index] = []
+        if (typeof ctx.dynamicAttributes[instructionIndex][index] === 'undefined') {
+          ctx.dynamicAttributes[instructionIndex][index] = []
         }
 
-        ctx.dynamicAttributes[layer][index].push(
+        ctx.dynamicAttributes[instructionIndex][index].push(
           templates.createObjectItem(
-            handleNode(attr.name, template, layer, ctx),
-            handleNode(attr.value, template, layer, ctx)
+            handleNode(attr.name, templateIndex, instructionIndex, ctx),
+            handleNode(attr.value, templateIndex, instructionIndex, ctx)
           )
         )
       }
     }
   })
 
-  var hasDynamicAttributes = typeof ctx.dynamicAttributes[layer][index] !== 'undefined' && ctx.dynamicAttributes[layer][index].length > 0
+  var hasDynamicAttributes = typeof ctx.dynamicAttributes[instructionIndex][index] !== 'undefined' && ctx.dynamicAttributes[instructionIndex][index].length > 0
 
   if (hasDynamicAttributes) {
-    var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
     var instruction = templates.handleAttributes(
-      layer,
+      instructionIndex,
       index,
-      ctx.dynamicAttributes[layer][index].join(',\n')
+      ctx.dynamicAttributes[instructionIndex][index]
     )
 
     if (ctx.dynamicNodes[ctx.index] === 'EXECUTE') {
-      ctx.executeInstructions[ctx.index] += '\n' + instruction
+      ctx.executeInstructions[ctx.index] += instruction
     } else {
-      var nextLayer = ++ctx.index
+      var nextInstructionIndex = ++ctx.index
 
-      ctx.executeInstructions[nextLayer] = instruction
-      ctx.dynamicNodes[nextLayer] = 'EXECUTE'
-      ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
+      ctx.executeInstructions[nextInstructionIndex] = instruction
+      ctx.dynamicNodes[nextInstructionIndex] = 'EXECUTE'
+      ctx.templates[templateIndex] += templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
     }
   }
 
-  ctx.createInstructions[nextLayer] = templates.createScript(
+  ctx.createInstructions[nextInstructionIndex] = templates.createScript(
     staticAttributes,
     escapeString(node.body.str),
-    nextLayer
+    nextInstructionIndex
   )
-  ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
+  ctx.templates[templateIndex] += templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
 
-  return templates.createAnchor(nextLayer)
+  return templates.createAnchor(nextInstructionIndex)
 }
 
-function styleNodeHandler(node, template, layer, ctx) {
-  var nextLayer = ++ctx.index
+function styleNodeHandler(node, templateIndex, instructionIndex, ctx) {
+  var nextInstructionIndex = ++ctx.index
 
-  if (typeof ctx.tags[layer] === 'undefined') {
-    ctx.tags[layer] = -1
-    ctx.dynamicAttributes[layer] = {}
+  if (typeof ctx.tags[instructionIndex] === 'undefined') {
+    ctx.tags[instructionIndex] = -1
+    ctx.dynamicAttributes[instructionIndex] = {}
   }
 
-  var index = ++ctx.tags[layer]
+  var index = ++ctx.tags[instructionIndex]
   var staticAttributes = []
 
   node.attrs.forEach(function (attr) {
@@ -392,61 +410,60 @@ function styleNodeHandler(node, template, layer, ctx) {
       if (attr.value === null) {
         staticAttributes.push(
           templates.createObjectItem(
-            handleNode(attr.name, template, layer, ctx),
+            handleNode(attr.name, templateIndex, instructionIndex, ctx),
             '""'
           )
         )
       } else if (attr.value.type === 'string') {
         staticAttributes.push(
           templates.createObjectItem(
-            handleNode(attr.name, template, layer, ctx),
-            handleNode(attr.value, template, layer, ctx)
+            handleNode(attr.name, templateIndex, instructionIndex, ctx),
+            handleNode(attr.value, templateIndex, instructionIndex, ctx)
           )
         )
       } else {
-        if (typeof ctx.dynamicAttributes[layer][index] === 'undefined') {
-          ctx.dynamicAttributes[layer][index] = []
+        if (typeof ctx.dynamicAttributes[instructionIndex][index] === 'undefined') {
+          ctx.dynamicAttributes[instructionIndex][index] = []
         }
 
-        ctx.dynamicAttributes[layer][index].push(
+        ctx.dynamicAttributes[instructionIndex][index].push(
           templates.createObjectItem(
-            handleNode(attr.name, template, layer, ctx),
-            handleNode(attr.value, template, layer, ctx)
+            handleNode(attr.name, templateIndex, instructionIndex, ctx),
+            handleNode(attr.value, templateIndex, instructionIndex, ctx)
           )
         )
       }
     }
   })
 
-  var hasDynamicAttributes = typeof ctx.dynamicAttributes[layer][index] !== 'undefined' && ctx.dynamicAttributes[layer][index].length > 0
+  var hasDynamicAttributes = typeof ctx.dynamicAttributes[instructionIndex][index] !== 'undefined' && ctx.dynamicAttributes[instructionIndex][index].length > 0
 
   if (hasDynamicAttributes) {
-    var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
     var instruction = templates.handleAttributes(
-      layer,
+      instructionIndex,
       index,
-      ctx.dynamicAttributes[layer][index].join(',\n')
+      ctx.dynamicAttributes[instructionIndex][index]
     )
 
     if (ctx.dynamicNodes[ctx.index] === 'EXECUTE') {
-      ctx.executeInstructions[ctx.index] += '\n' + instruction
+      ctx.executeInstructions[ctx.index] += instruction
     } else {
-      var nextLayer = ++ctx.index
+      var nextInstructionIndex = ++ctx.index
 
-      ctx.executeInstructions[nextLayer] = instruction
-      ctx.dynamicNodes[nextLayer] = 'EXECUTE'
-      ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
+      ctx.executeInstructions[nextInstructionIndex] = instruction
+      ctx.dynamicNodes[nextInstructionIndex] = 'EXECUTE'
+      ctx.templates[templateIndex] += templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
     }
   }
 
-  ctx.createInstructions[nextLayer] = templates.createStyle(
+  ctx.createInstructions[nextInstructionIndex] = templates.createStyle(
     staticAttributes,
     escapeString(node.body.str),
-    nextLayer
+    nextInstructionIndex
   )
-  ctx.templates[template] += templates.chainStatePush(nextLayer, ctx.params.type === 'module')
+  ctx.templates[templateIndex] += templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
 
-  return templates.createAnchor(nextLayer)
+  return templates.createAnchor(nextInstructionIndex)
 }
 
 function escapeString(text) {
@@ -461,42 +478,42 @@ function handleString(node) {
   return '"' + node.value + '"'
 }
 
-function handleTag(node, template, layer, ctx) {
+function handleTag(node, templateIndex, instructionIndex, ctx) {
   switch (node.name) {
     case 'inline-svg':
     case 'template':
       return ''
     case 'import':
-      return handleImportStatement(node, template, layer, ctx)
+      return handleImportStatement(node, templateIndex, instructionIndex, ctx)
     case 'use-state':
-      return handleUseStateStatement(node, template, layer, ctx)
+      return handleUseStateStatement(node, templateIndex, instructionIndex, ctx)
     case 'param':
-      return handleParamStatement(node, template, layer, ctx)
+      return handleParamStatement(node, templateIndex, instructionIndex, ctx)
     case 'variable':
-      return handleVariableStatement(node, template, layer, ctx)
+      return handleVariableStatement(node, templateIndex, instructionIndex, ctx)
     case 'switch':
-      return handleSwitchStatement(node, template, layer, ctx)
+      return handleSwitchStatement(node, templateIndex, instructionIndex, ctx)
     case 'case':
-      return handleCaseStatement(node, template, layer, ctx)
+      return handleCaseStatement(node, templateIndex, instructionIndex, ctx)
     case 'default':
-      return handleDefaultStatement(node, template, layer, ctx)
+      return handleDefaultStatement(node, templateIndex, instructionIndex, ctx)
     case 'attribute':
-      return handleAttributeStatement(node, template, layer, ctx)
+      return handleAttributeStatement(node, templateIndex, instructionIndex, ctx)
     case 'for-each':
-      return handleForEachStatement(node, template, layer, ctx)
+      return handleForEachStatement(node, templateIndex, instructionIndex, ctx)
     case 'if':
-      return handleIfStatement(node, template, layer, ctx)
+      return handleIfStatement(node, templateIndex, instructionIndex, ctx)
 
     default:
       if (typeof ctx.imports[node.name] !== 'undefined') {
-        return handleComponent(node, template, layer, ctx)
+        return handleComponent(node, templateIndex, instructionIndex, ctx)
       }
 
-      return handleDefaultTag(node, template, layer, ctx)
+      return handleDefaultTag(node, templateIndex, instructionIndex, ctx)
   }
 }
 
-function handleNode(node, template, layer, ctx) {
+function handleNode(node, templateIndex, instructionIndex, ctx) {
   switch (node.type) {
     case 'logic':
       return logicHandler(node, ctx)
@@ -505,31 +522,31 @@ function handleNode(node, template, layer, ctx) {
     case 'string':
       return handleString(node)
     case 'tag':
-      return handleTag(node, template, layer, ctx)
+      return handleTag(node, templateIndex, instructionIndex, ctx)
     case 'logic-node':
-      return logicNodeHandler(node, template, layer, ctx)
+      return logicNodeHandler(node, templateIndex, instructionIndex, ctx)
     case 'script':
-      return scriptNodeHandler(node, template, layer, ctx)
+      return scriptNodeHandler(node, templateIndex, instructionIndex, ctx)
     case 'style':
-      return styleNodeHandler(node, template, layer, ctx)
+      return styleNodeHandler(node, templateIndex, instructionIndex, ctx)
     default:
       return ''
   }
 }
 
-function handleTemplate(node, template, layer, ctx) {
-  if (!ctx.templates[template]) {
-    ctx.templates[template] = templates.chainStatePush(layer, ctx.params.type === 'module')
+function handleTemplate(node, templateIndex, instructionIndex, ctx) {
+  if (!ctx.templates[templateIndex]) {
+    ctx.templates[templateIndex] = templates.chainStatePush(instructionIndex, ctx.params.type === 'module')
   }
 
-  ctx.createInstructions[layer] = templates.createInstriction(walk(node, template, layer, ctx), layer)
+  ctx.createInstructions[instructionIndex] = templates.createInstriction(walk(node, templateIndex, instructionIndex, ctx), instructionIndex)
 }
 
-function walk(node, template, layer, ctx) {
+function walk(node, templateIndex, instructionIndex, ctx) {
   var result = []
 
   while (node) {
-    result.push(handleNode(node, template, layer, ctx))
+    result.push(handleNode(node, templateIndex, instructionIndex, ctx))
 
     node = node.nextSibling
   }

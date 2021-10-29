@@ -225,19 +225,20 @@ const main = async function (mountNode) {
 0: async function (layer) {
 	layer.elements[0] = await createNodes([[layer, 5]
 ], layer.lookahead[0][0])
+
 	insertLayerElements(layer, 0)
 },
 1: function (layer) {
-				if (typeof scope['current-page'] === 'undefined') scope['current-page'] = 1; else scope['current-page'] = scope['current-page']
+				if (typeof scope['current-page'] === 'undefined') scope['current-page'] = 1;
 			},
 2: function (layer) {
-				if (typeof scope['length'] === 'undefined') scope['length'] = 0; else scope['length'] = scope['length']
+				if (typeof scope['length'] === 'undefined') scope['length'] = 0;
 			},
 3: function (layer) {
-				if (typeof scope['on-page'] === 'undefined') scope['on-page'] = 10; else scope['on-page'] = scope['on-page']
+				if (typeof scope['on-page'] === 'undefined') scope['on-page'] = 10;
 			},
 4: function (layer) {
-				if (typeof scope['url'] === 'undefined') scope['url'] = ""; else scope['url'] = scope['url']
+				if (typeof scope['url'] === 'undefined') scope['url'] = "";
 			},
 5: async function (layer) {
 	layer.elements[5] = await createNodes([[layer, 7]
@@ -245,17 +246,19 @@ const main = async function (mountNode) {
 [layer, 10]
 ,
 '\n'], layer.lookahead[5][0])
+
 	insertLayerElements(layer, 5)
 },
 6: function (layer) {
-				scope['pages'] = parseInt(scope['length'] / scope['on-page'], 10)
+				scope['pages'] = parseInt(scope['length'] / scope['on-page'], 10);
 			},
 7: async function (layer) {
 	layer.elements[7] = await createNodes(['\n	'], layer.lookahead[7][0])
+
 	insertLayerElements(layer, 7)
 },
 8: function (layer) {
-				scope['pages'] = scope['pages'] + 1
+				scope['pages'] = scope['pages'] + 1;
 			},
 10: async function (layer) {
 	layer.elements[10] = await createNodes(['\n		',
@@ -263,8 +266,10 @@ const main = async function (mountNode) {
 [layer, 11]
 ,
 '\n		'
-], layer, 10, 0],
+], layer, 10, 0]
+,
 '\n	'], layer.lookahead[10][0])
+
 	insertLayerElements(layer, 10)
 },
 11: async function (layer) {
@@ -283,6 +288,7 @@ await iteration(field, item)
 ,
 '\n				',
 '\n			'], layer.lookahead[12][0])
+
 	insertLayerElements(layer, 12)
 },
 13: async function (layer) {
@@ -290,12 +296,15 @@ await iteration(field, item)
 ['span', {"class": "pagination__item pagination__item--active"}, [
 [layer, 14]
 
-], layer, 13, 0],
+], layer, 13, 0]
+,
 '\n					'], layer.lookahead[13][0])
+
 	insertLayerElements(layer, 13)
 },
 14: function (layer) {
 				handleTextNode(layer, 14, scope['page-number'])
+
 			},
 16: async function (layer) {
 	layer.elements[16] = await createNodes(['\n						',
@@ -303,18 +312,21 @@ await iteration(field, item)
 [layer, 18]
 ,
 '\n						'
-], layer, 16, 0],
+], layer, 16, 0]
+,
 '\n					'], layer.lookahead[16][0])
+
 	insertLayerElements(layer, 16)
 },
 17: function (layer) {
 				handleAttributes(layer.attributes[16][0], {
-"href": scope['url'] + scope['page-number'] + "/",
-"data-item": scope['page-number']
+"href": scope['url'] + scope['page-number'] + "/","data-item": scope['page-number']
 })
+
 			},
 18: function (layer) {
 				handleTextNode(layer, 18, scope['page-number'])
+
 			}
 	}
 	var templates = {

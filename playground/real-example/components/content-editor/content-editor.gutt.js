@@ -215,9 +215,12 @@ const main = async function (mountNode) {
 	var instructions = {
 0: async function (layer) {
 	layer.elements[0] = await createNodes([['div', {"class": "content-editor", "data-component": "content-editor"}, [
-layer.anchors[1] = childrenAnchor,
+layer.anchors[1] = childrenAnchor
+,
 '\n'
-], layer, 0, 0]], layer.lookahead[0][0])
+], layer, 0, 0]
+], layer.lookahead[0][0])
+
 	insertLayerElements(layer, 0)
 }
 	}

@@ -220,11 +220,13 @@ const main = async function (mountNode) {
 [layer, 2]
 ,
 '\n'
-], layer, 0, 0]], layer.lookahead[0][0])
+], layer, 0, 0]
+], layer.lookahead[0][0])
+
 	insertLayerElements(layer, 0)
 },
 1: function (layer) {
-				if (typeof scope['placeholder'] === 'undefined') scope['placeholder'] = ""; else scope['placeholder'] = scope['placeholder']
+				if (typeof scope['placeholder'] === 'undefined') scope['placeholder'] = "";
 			},
 2: async function (layer) {
 				var anchor = createAnchor(layer, 3)
@@ -239,6 +241,7 @@ var initialScope = {"type": "search","value": "","name": "search","placeholder":
 			layer.elements[2] = layer.components[2](initialScope, state)
 			
 		}
+
 			}
 	}
 	var templates = {

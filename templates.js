@@ -4,7 +4,7 @@ module.exports = {
 	},
 
 	createInstriction(children, layer) {
-		return 'createNodes([' + children + '], layer.lookahead[' + layer + '][0])'
+		return 'createNodes([' + children + '], layer.lookahead[' + layer + '][0])\n'
 	},
 
 	createAnchor: function (layer) {
@@ -16,19 +16,19 @@ module.exports = {
 	},
 
 	createElement: function (name, attributes, children, layer, index) {
-		return '[\'' + name + '\', {' + attributes.join(', ') + '}, [\n' + children + '\n], layer, ' + layer + ', ' + index + ']'
+		return '[\'' + name + '\', {' + attributes.join(', ') + '}, [\n' + children + '\n], layer, ' + layer + ', ' + index + ']\n'
 	},
 
 	createScript: function (attributes, body, layer) {
-		return 'createScript({' + attributes.join(', ') + '}, \'' + body + '\', layer, layer.lookahead[' + layer + '][0])'
+		return 'createScript({' + attributes.join(', ') + '}, \'' + body + '\', layer, layer.lookahead[' + layer + '][0])\n'
 	},
 
 	createStyle: function (attributes, body, layer) {
-		return 'createStyle({' + attributes.join(', ') + '}, \'' + body + '\', layer, layer.lookahead[' + layer + '][0])'
+		return 'createStyle({' + attributes.join(', ') + '}, \'' + body + '\', layer, layer.lookahead[' + layer + '][0])\n'
 	},
 
 	handleAttributes: function (layer, index, attributes) {
-		return 'handleAttributes(layer.attributes[' + layer + '][' + index + '], {\n' + attributes + '\n})'
+		return 'handleAttributes(layer.attributes[' + layer + '][' + index + '], {\n' + attributes.join(',\n') + '\n})\n'
 	},
 
 	createObjectItem: function (field, value) {
@@ -41,7 +41,7 @@ module.exports = {
 			layer.lookahead[' + childrenLayer + '] = layer.lookahead[' + layer + ']\n' :
 			''
 		) +
-		'var initialScope = {' + params + '}\n\
+		'var initialScope = {' + params.join(',') + '}\n\
 \n\
 		if (typeof layer.components[' + layer + '] === \'undefined\') {\n\
 			var result =' + (isModule ? 'await ' : '') + ' imports[\'' + name + '\'](layer.anchors[' + layer + '].parentNode, layer.anchors[' + layer + '], initialScope, state, layer.lookahead[' + layer + '][0]' +
@@ -51,10 +51,38 @@ module.exports = {
 		} else {\n\
 			layer.elements[' + layer + '] = layer.components[' + layer + '](initialScope, state)\n\
 			\n\
-		}'
+		}\n'
 	},
 
 	handleTextNode: function (index, content) {
-		return 'handleTextNode(layer, ' + index + ', ' + content + ')'
+		return 'handleTextNode(layer, ' + index + ', ' + content + ')\n'
+	},
+
+	setChildrenAnchor: function (instructionIndex) {
+		return 'layer.anchors[' + instructionIndex + '] = childrenAnchor\n'
+	},
+
+	assertion: function (name, value) {
+		return name + ' = ' + value + ';'
+	},
+
+	useStateStatement: function (nameExprValue, name, value) {
+		return (
+			value.length
+				? 'if (typeof state[\'' + nameExprValue + '\'] === \'undefined\') ' +
+					this.assertion(
+						name,
+						value
+					) + ' else '
+				: ''
+		) + name + ' = state[\'' + nameExprValue + '\'];'
+	},
+
+	executeInstruction: function (name, value) {
+		return 'if (typeof ' + name + ' === \'undefined\') ' +
+			this.assertion(
+				name,
+				value
+			)
 	}
 }

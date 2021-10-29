@@ -220,15 +220,21 @@ const main = async function (mountNode) {
 ['a', {"href": "/manager/"}, [
 'Заказы'
 ], layer, 0, 2]
-], layer, 0, 1],
+
+], layer, 0, 1]
+,
 '\n	',
 ['li', {}, [
 ['a', {"href": "/manager/templates/"}, [
 'Шаблоны'
 ], layer, 0, 4]
-], layer, 0, 3],
+
+], layer, 0, 3]
+,
 '\n'
-], layer, 0, 0]], layer.lookahead[0][0])
+], layer, 0, 0]
+], layer.lookahead[0][0])
+
 	insertLayerElements(layer, 0)
 }
 	}

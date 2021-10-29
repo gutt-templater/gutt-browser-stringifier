@@ -235,17 +235,22 @@ const main = async function (mountNode) {
 ['div', {"class": "auth-form__error"}, [
 [layer, 8]
 
-], layer, 0, 3],
+], layer, 0, 3]
+,
 '\n		'
-], layer, 0, 2],
+], layer, 0, 2]
+,
 '\n	'
-], layer, 0, 1],
+], layer, 0, 1]
+,
 '\n'
-], layer, 0, 0]], layer.lookahead[0][0])
+], layer, 0, 0]
+], layer.lookahead[0][0])
+
 	insertLayerElements(layer, 0)
 },
 1: function (layer) {
-				if (typeof state['auth'] === 'undefined') scope['auth'] = (function () { var _arr = {}; _arr["email"] = ""; _arr["password"] = ""; _arr["error"] = ""; return _arr;})(); else scope['auth'] = state['auth']
+				if (typeof state['auth'] === 'undefined') scope['auth'] = (function () { var _arr = {}; _arr["email"] = ""; _arr["password"] = ""; _arr["error"] = ""; return _arr;})(); else scope['auth'] = state['auth'];
 			},
 2: async function (layer) {
 				var anchor = createAnchor(layer, 3)
@@ -260,6 +265,7 @@ var initialScope = {"label": "Эл. почта","type": "email","autocomplete": 
 			layer.elements[2] = layer.components[2](initialScope, state)
 			
 		}
+
 			},
 4: async function (layer) {
 				var anchor = createAnchor(layer, 5)
@@ -274,6 +280,7 @@ var initialScope = {"label": "Пароль","type": "password","autocomplete": "
 			layer.elements[4] = layer.components[4](initialScope, state)
 			
 		}
+
 			},
 6: async function (layer) {
 				var anchor = createAnchor(layer, 7)
@@ -288,13 +295,16 @@ var initialScope = {"type": "submit","disabled": !scope['auth']['email'].length 
 			layer.elements[6] = layer.components[6](initialScope, state)
 			
 		}
+
 			},
 7: async function (layer) {
 	layer.elements[7] = await createNodes(['Войти'], layer.lookahead[7][0])
+
 	insertLayerElements(layer, 7)
 },
 8: function (layer) {
 				handleTextNode(layer, 8, scope['auth']['error'])
+
 			}
 	}
 	var templates = {

@@ -235,7 +235,8 @@ const main = async function (mountNode) {
 [layer, 2]
 ,
 '\n		'
-], layer, 0, 2],
+], layer, 0, 2]
+,
 '\n\n		',
 ['div', {}, [
 '\n			',
@@ -243,17 +244,21 @@ const main = async function (mountNode) {
 'Проданных билетов: ',
 [layer, 4]
 
-], layer, 0, 4],
+], layer, 0, 4]
+,
 '\n			',
 ['span', {"class": "orders-page__summary"}, [
 'Сумма: ',
 [layer, 5]
 
-], layer, 0, 5],
+], layer, 0, 5]
+,
 '\n		'
-], layer, 0, 3],
+], layer, 0, 3]
+,
 '\n	'
-], layer, 0, 1],
+], layer, 0, 1]
+,
 '\n\n	',
 ['div', {"class": "orders-page__body"}, [
 '\n		',
@@ -265,54 +270,67 @@ const main = async function (mountNode) {
 '\n					',
 ['th', {"class": "orders-page__th"}, [
 
-], layer, 0, 10],
+], layer, 0, 10]
+,
 '\n					',
 ['th', {"class": "orders-page__th"}, [
 'Покупатель'
-], layer, 0, 11],
+], layer, 0, 11]
+,
 '\n					',
 ['th', {"class": "orders-page__th"}, [
 'Билет'
-], layer, 0, 12],
+], layer, 0, 12]
+,
 '\n					',
 ['th', {"class": "orders-page__th"}, [
 'Дата'
-], layer, 0, 13],
+], layer, 0, 13]
+,
 '\n					',
 ['th', {"class": "orders-page__th"}, [
 'Сумма'
-], layer, 0, 14],
+], layer, 0, 14]
+,
 '\n					',
 ['th', {"class": "orders-page__th"}, [
 'Откуда узнал'
-], layer, 0, 15],
+], layer, 0, 15]
+,
 '\n				'
-], layer, 0, 9],
+], layer, 0, 9]
+,
 '\n			'
-], layer, 0, 8],
+], layer, 0, 8]
+,
 '\n			',
 ['tbody', {"class": "orders-page__tbody"}, [
 [layer, 6]
 ,
 '\n			'
-], layer, 0, 16],
+], layer, 0, 16]
+,
 '\n		'
-], layer, 0, 7],
+], layer, 0, 7]
+,
 '\n	'
-], layer, 0, 6],
+], layer, 0, 6]
+,
 '\n\n	',
 ['div', {"class": "orders-page__footer"}, [
 [layer, 14]
 ,
 '\n	'
-], layer, 0, 17],
+], layer, 0, 17]
+,
 '\n'
-], layer, 0, 0]], layer.lookahead[0][0])
+], layer, 0, 0]
+], layer.lookahead[0][0])
+
 	insertLayerElements(layer, 0)
 },
 1: function (layer) {
-				if (typeof state['orders'] === 'undefined') scope['orders'] = (function () { var _arr = {}; _arr["items"] = []; _arr["sum"] = 0; _arr["succeeded"] = 0; _arr["total"] = 0; return _arr;})(); else scope['orders'] = state['orders']
-if (typeof state['page'] === 'undefined') scope['page'] = 1; else scope['page'] = state['page']
+				if (typeof state['orders'] === 'undefined') scope['orders'] = (function () { var _arr = {}; _arr["items"] = []; _arr["sum"] = 0; _arr["succeeded"] = 0; _arr["total"] = 0; return _arr;})(); else scope['orders'] = state['orders'];if (typeof state['page'] === 'undefined') scope['page'] = 1; else scope['page'] = state['page'];
 			},
 2: async function (layer) {
 				var anchor = createAnchor(layer, 3)
@@ -327,12 +345,15 @@ var initialScope = {"placeholder": "Поиск по имени, фамилии, 
 			layer.elements[2] = layer.components[2](initialScope, state)
 			
 		}
+
 			},
 4: function (layer) {
 				handleTextNode(layer, 4, scope['orders']['succeeded'])
+
 			},
 5: function (layer) {
 				handleTextNode(layer, 5, scope['orders']['sum'] + " ₽")
+
 			},
 6: async function (layer) {
 await handleArray(layer, 6, async function (iteration) {
@@ -351,62 +372,73 @@ await iteration(field, item)
 '\n							',
 ['span', {}, [
 
-], layer, 7, 2],
+], layer, 7, 2]
+,
 '\n						'
-], layer, 7, 1],
+], layer, 7, 1]
+,
 '\n						',
 ['td', {"class": "orders-page__td"}, [
 [layer, 9]
 
-], layer, 7, 3],
+], layer, 7, 3]
+,
 '\n						',
 ['td', {"class": "orders-page__td"}, [
 [layer, 10]
 
-], layer, 7, 4],
+], layer, 7, 4]
+,
 '\n						',
 ['td', {"class": "orders-page__td"}, [
 [layer, 11]
 
-], layer, 7, 5],
+], layer, 7, 5]
+,
 '\n						',
 ['td', {"class": "orders-page__td"}, [
 [layer, 12]
 
-], layer, 7, 6],
+], layer, 7, 6]
+,
 '\n						',
 ['td', {"class": "orders-page__td"}, [
 [layer, 13]
 
-], layer, 7, 7],
+], layer, 7, 7]
+,
 '\n					'
-], layer, 7, 0],
+], layer, 7, 0]
+,
 '\n				'], layer.lookahead[7][0])
+
 	insertLayerElements(layer, 7)
 },
 8: function (layer) {
-				scope['datetime'] = (scope['order']['purchase_status'] == "succeeded" ? scope['order']['purchased'] : scope['order']['created'])
-scope['datetime'] = scope['datetime'].split(" ")
-scope['date'] = scope['datetime'][0].split("-")
-scope['time'] = scope['datetime'][1].split(":")
-handleAttributes(layer.attributes[7][2], {
+				scope['datetime'] = (scope['order']['purchase_status'] == "succeeded" ? scope['order']['purchased'] : scope['order']['created']);scope['datetime'] = scope['datetime'].split(" ");scope['date'] = scope['datetime'][0].split("-");scope['time'] = scope['datetime'][1].split(":");handleAttributes(layer.attributes[7][2], {
 "class": "orders-page__status orders-page__status--" + scope['order']['purchase_status']
 })
+
 			},
 9: function (layer) {
 				handleTextNode(layer, 9, scope['order']['firstname'] + " " + scope['order']['lastname'])
+
 			},
 10: function (layer) {
 				handleTextNode(layer, 10, scope['order']['tickets'][0]['title'])
+
 			},
 11: function (layer) {
 				handleTextNode(layer, 11, scope['date'][2] + "." + scope['date'][1] + "." + scope['date'][0].substr(2) + " " + scope['time'][0] + ":" + scope['time'][1])
+
 			},
 12: function (layer) {
 				handleTextNode(layer, 12, scope['order']['price'] + " ₽")
+
 			},
 13: function (layer) {
 				handleTextNode(layer, 13, scope['order']['note'])
+
 			},
 14: async function (layer) {
 				var anchor = createAnchor(layer, 15)
@@ -421,6 +453,7 @@ var initialScope = {"length": scope['orders']['total'],"on-page": 100,"url": "/m
 			layer.elements[14] = layer.components[14](initialScope, state)
 			
 		}
+
 			}
 	}
 	var templates = {

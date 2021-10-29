@@ -223,38 +223,34 @@ const main = async function (mountNode) {
 	layer.elements[0] = await createNodes(['\n\n',
 ['input', {}, [
 
-], layer, 0, 0]], layer.lookahead[0][0])
+], layer, 0, 0]
+], layer.lookahead[0][0])
+
 	insertLayerElements(layer, 0)
 },
 1: function (layer) {
-				if (typeof scope['class'] === 'undefined') scope['class'] = ""; else scope['class'] = scope['class']
+				if (typeof scope['class'] === 'undefined') scope['class'] = "";
 			},
 2: function (layer) {
-				if (typeof scope['type'] === 'undefined') scope['type'] = "text"; else scope['type'] = scope['type']
+				if (typeof scope['type'] === 'undefined') scope['type'] = "text";
 			},
 3: function (layer) {
-				if (typeof scope['value'] === 'undefined') scope['value'] = ""; else scope['value'] = scope['value']
+				if (typeof scope['value'] === 'undefined') scope['value'] = "";
 			},
 4: function (layer) {
-				if (typeof scope['name'] === 'undefined') scope['name'] = ""; else scope['name'] = scope['name']
+				if (typeof scope['name'] === 'undefined') scope['name'] = "";
 			},
 5: function (layer) {
-				if (typeof scope['placeholder'] === 'undefined') scope['placeholder'] = ""; else scope['placeholder'] = scope['placeholder']
+				if (typeof scope['placeholder'] === 'undefined') scope['placeholder'] = "";
 			},
 6: function (layer) {
-				if (typeof scope['disabled'] === 'undefined') scope['disabled'] = false; else scope['disabled'] = scope['disabled']
+				if (typeof scope['disabled'] === 'undefined') scope['disabled'] = false;
 			},
 7: function (layer) {
-				if (typeof scope['autocomplete'] === 'undefined') scope['autocomplete'] = "on"; else scope['autocomplete'] = scope['autocomplete']
-handleAttributes(layer.attributes[0][0], {
-"autocomplete": scope['autocomplete'],
-"class": [scope['class'], "input"].filter(function (className) { return Boolean(className)}).join(" "),
-"type": scope['type'],
-"value": scope['value'],
-"disabled": scope['disabled'],
-"name": scope['name'],
-"placeholder": scope['placeholder']
+				if (typeof scope['autocomplete'] === 'undefined') scope['autocomplete'] = "on";handleAttributes(layer.attributes[0][0], {
+"autocomplete": scope['autocomplete'],"class": [scope['class'], "input"].filter(function (className) { return Boolean(className)}).join(" "),"type": scope['type'],"value": scope['value'],"disabled": scope['disabled'],"name": scope['name'],"placeholder": scope['placeholder']
 })
+
 			}
 	}
 	var templates = {

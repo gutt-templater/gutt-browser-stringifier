@@ -1,0 +1,11 @@
+<variable name={$attr} value="value" />
+
+<div>
+	<p></p>
+	<p data-attr={$attr}>
+		<if test={true}>
+			<attribute name="style" value="height: 30px; background: palegreen" />
+		</if>
+	</p>
+	<p></p>
+</div>

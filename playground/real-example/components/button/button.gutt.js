@@ -218,24 +218,25 @@ const main = async function (mountNode) {
 0: async function (layer) {
 	layer.elements[0] = await createNodes(['\n\n',
 ['button', {}, [
-layer.anchors[4] = childrenAnchor,
+layer.anchors[4] = childrenAnchor
+,
 '\n'
-], layer, 0, 0]], layer.lookahead[0][0])
+], layer, 0, 0]
+], layer.lookahead[0][0])
+
 	insertLayerElements(layer, 0)
 },
 1: function (layer) {
-				if (typeof scope['type'] === 'undefined') scope['type'] = "button"; else scope['type'] = scope['type']
+				if (typeof scope['type'] === 'undefined') scope['type'] = "button";
 			},
 2: function (layer) {
-				if (typeof scope['class'] === 'undefined') scope['class'] = ""; else scope['class'] = scope['class']
+				if (typeof scope['class'] === 'undefined') scope['class'] = "";
 			},
 3: function (layer) {
-				if (typeof scope['disabled'] === 'undefined') scope['disabled'] = false; else scope['disabled'] = scope['disabled']
-handleAttributes(layer.attributes[0][0], {
-"class": [scope['class'], "button"].filter(function (className) { return Boolean(className)}).join(" "),
-"type": scope['type'],
-"disabled": scope['disabled']
+				if (typeof scope['disabled'] === 'undefined') scope['disabled'] = false;handleAttributes(layer.attributes[0][0], {
+"class": [scope['class'], "button"].filter(function (className) { return Boolean(className)}).join(" "),"type": scope['type'],"disabled": scope['disabled']
 })
+
 			}
 	}
 	var templates = {

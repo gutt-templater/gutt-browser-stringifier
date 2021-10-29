@@ -227,37 +227,42 @@ const main = async function (mountNode) {
 ['dt', {"class": "field__dt"}, [
 [layer, 7]
 
-], layer, 0, 1],
+], layer, 0, 1]
+,
 '\n	',
 ['dd', {"class": "field__dd"}, [
 [layer, 8]
 ,
 '\n	'
-], layer, 0, 2],
+], layer, 0, 2]
+,
 '\n'
-], layer, 0, 0]], layer.lookahead[0][0])
+], layer, 0, 0]
+], layer.lookahead[0][0])
+
 	insertLayerElements(layer, 0)
 },
 1: function (layer) {
-				if (typeof scope['autocomplete'] === 'undefined') scope['autocomplete'] = "on"; else scope['autocomplete'] = scope['autocomplete']
+				if (typeof scope['autocomplete'] === 'undefined') scope['autocomplete'] = "on";
 			},
 2: function (layer) {
-				if (typeof scope['label'] === 'undefined') scope['label'] = ""; else scope['label'] = scope['label']
+				if (typeof scope['label'] === 'undefined') scope['label'] = "";
 			},
 3: function (layer) {
-				if (typeof scope['type'] === 'undefined') scope['type'] = "text"; else scope['type'] = scope['type']
+				if (typeof scope['type'] === 'undefined') scope['type'] = "text";
 			},
 4: function (layer) {
-				if (typeof scope['value'] === 'undefined') scope['value'] = ""; else scope['value'] = scope['value']
+				if (typeof scope['value'] === 'undefined') scope['value'] = "";
 			},
 5: function (layer) {
-				if (typeof scope['name'] === 'undefined') scope['name'] = ""; else scope['name'] = scope['name']
+				if (typeof scope['name'] === 'undefined') scope['name'] = "";
 			},
 6: function (layer) {
-				if (typeof scope['disabled'] === 'undefined') scope['disabled'] = false; else scope['disabled'] = scope['disabled']
+				if (typeof scope['disabled'] === 'undefined') scope['disabled'] = false;
 			},
 7: function (layer) {
 				handleTextNode(layer, 7, scope['label'])
+
 			},
 8: async function (layer) {
 				var anchor = createAnchor(layer, 9)
@@ -272,6 +277,7 @@ var initialScope = {"autocomplete": scope['autocomplete'],"type": scope['type'],
 			layer.elements[8] = layer.components[8](initialScope, state)
 			
 		}
+
 			}
 	}
 	var templates = {

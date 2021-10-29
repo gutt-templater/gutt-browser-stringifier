@@ -196,7 +196,8 @@ const main = async function (mountNode) {
 
 	}
 	var dynamicNodes = {
-1: EXECUTE
+1: EXECUTE,
+3: EXECUTE
 	}
 	var layers = {
 		0: createLayer()
@@ -217,7 +218,8 @@ const main = async function (mountNode) {
 	layer.elements[0] = await createNodes(['\n\n',
 ['!DOCTYPE', {"html": ""}, [
 
-], layer, 0, 0],
+], layer, 0, 0]
+,
 '\n',
 ['html', {"lang": "en"}, [
 '\n',
@@ -225,48 +227,74 @@ const main = async function (mountNode) {
 '\n	',
 ['meta', {"charset": "UTF-8"}, [
 
-], layer, 0, 3],
+], layer, 0, 3]
+,
 '\n	',
 ['meta', {"name": "viewport", "content": "width=device-width, initial-scale=1.0"}, [
 
-], layer, 0, 4],
+], layer, 0, 4]
+,
 '\n	',
 ['title', {}, [
 'Админка'
-], layer, 0, 5],
+], layer, 0, 5]
+,
 '\n	',
 ['link', {"rel": "preconnect", "href": "https://fonts.gstatic.com"}, [
 
-], layer, 0, 6],
+], layer, 0, 6]
+,
 '\n	',
 ['link', {"href": "https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap", "rel": "stylesheet"}, [
 
-], layer, 0, 7],
+], layer, 0, 7]
+,
 '\n	',
 ['link', {"rel": "stylesheet", "href": "/client/out/dist/manager/mobile-bundle.css"}, [
 
-], layer, 0, 8],
+], layer, 0, 8]
+,
 '\n	',
 ['link', {"rel": "stylesheet", "href": "/client/out/dist/manager/bundle.css"}, [
 
-], layer, 0, 9],
+], layer, 0, 9]
+,
 '\n'
-], layer, 0, 2],
+], layer, 0, 2]
+,
 '\n',
 ['body', {}, [
+[layer, 2]
+,
 '\n	',
 ['div', {"id": "app"}, [
-layer.anchors[2] = childrenAnchor,
+layer.anchors[5] = childrenAnchor
+,
 '\n	'
-], layer, 0, 11],
+], layer, 0, 11]
+,
 '\n'
-], layer, 0, 10],
+], layer, 0, 10]
+,
 '\n'
-], layer, 0, 1]], layer.lookahead[0][0])
+], layer, 0, 1]
+], layer.lookahead[0][0])
+
 	insertLayerElements(layer, 0)
 },
 1: function (layer) {
-				if (typeof state['auth'] === 'undefined') scope['auth'] = false; else scope['auth'] = state['auth']
+				if (typeof state['auth'] === 'undefined') scope['auth'] = true; else scope['auth'] = state['auth'];
+			},
+2: async function (layer) {
+	layer.elements[2] = await createNodes(['\n	'], layer.lookahead[2][0])
+
+	insertLayerElements(layer, 2)
+},
+3: function (layer) {
+				handleAttributes(layer.attributes[0][10], {
+"data-auth": true
+})
+
 			}
 	}
 	var templates = {
@@ -274,6 +302,10 @@ layer.anchors[2] = childrenAnchor,
 	layer.index = -1
 	await handleTemplate(0, layer)
 	await handleTemplate(1, layer)
+if (scope['auth']) {
+	await handleTemplate(2, layer)
+	await handleTemplate(3, layer)
+}
 
 	await handleTail(layer)
 }

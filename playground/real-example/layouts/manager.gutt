@@ -1,4 +1,4 @@
-<use-state name={$auth} value={false} />
+<use-state name={$auth} value={true} />
 
 <!DOCTYPE html>
 <html lang="en">
@@ -12,7 +12,9 @@
 	<link rel="stylesheet" href="/client/out/dist/manager/bundle.css" />
 </head>
 <body>
-	<attribute name="data-auth" value={true} />
+	<if test={$auth}>
+		<attribute name="data-auth" value={true} />
+	</if>
 	<div id="app">
 		{$children}
 	</div>
