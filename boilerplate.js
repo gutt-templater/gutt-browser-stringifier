@@ -733,7 +733,9 @@ module.exports = function (ctx, params) {
 				var layerIndex, elementIndex, element \n\
 \n\
 				forEach(layer.children[index].layers, function (sublayer) {\n\
-					forEach(layer.elements, removeElement)\n\
+					forEach(sublayer.elements, function (elements) {\n\
+						forEach(elements, removeElement)\n\
+					})\n\
 				})\n\
 \n\
 				delete layer.children[index]\n\
