@@ -12,7 +12,7 @@ module.exports = {
 	},
 
 	handleArray: function (layer, from, item, isModule, field) {
-		return (isModule ? 'await ' : '') + 'handleArray(layer, ' + layer + ', ' + (isModule ? 'async ' : '') + 'function (iteration) {\nforEach(' + from + ', ' + (isModule ? 'async ' : '') + 'function (item, field) {\n' + item + ' = item\n' + field + (isModule ? 'await ' : '') + 'iteration(field, item)\n})\n})\n'
+		return (isModule ? 'await ' : '') + 'handleArray(layer, ' + layer + ', ' + (isModule ? 'async ' : '') + 'function (iteration) {\nforEach(' + from + ', ' + (isModule ? 'async ' : '') + 'function (item, field) {\n' + item + ' = item\n' + field + '\n' + (isModule ? 'await ' : '') + 'iteration(field, item)\n})\n})\n'
 	},
 
 	createElement: function (name, attributes, children, layer, index) {
