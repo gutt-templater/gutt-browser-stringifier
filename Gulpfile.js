@@ -5,12 +5,15 @@ const gulp = require('gulp')
 const gutt = require('gulp-gutt')
 const rename = require('gulp-rename')
 const browserStringifier = require('./')
-const browserSync = require('browser-sync').create()
+const BrowserSync = require('browser-sync').create()
+
+let browserSync
 
 function requireAsync(module, callback) {
 	return new Promise(function (resolve, reject) {
 		fs.readFile(module, { encoding: 'utf8' }, function (err, code) {
 			if (err) {
+				console.error('here is error', err)
 				return reject(err)
 			}
 
@@ -22,22 +25,24 @@ function requireAsync(module, callback) {
 				console: console
 			}
 
-			vm.runInNewContext(code, sandbox)
-
-			resolve(sandbox.module.exports)
+			try {
+				vm.runInNewContext(code, sandbox)
+				resolve(sandbox.module.exports)
+			} catch (error) {
+				reject(error.stack)
+			}
 		})
 	})
 }
 
 function start(done) {
-	browserSync.init({
-        server: {
-            baseDir: "./playground"
-        }
-    })
+	browserSync = BrowserSync.init({
+		server: {
+			baseDir: "./playground"
+		}
+	})
 
-    gulp.watch('playground/**/*.{html,gutt}', templates).on('change', browserSync.reload)
-    gulp.watch('./*.js', templates).on('change', browserSync.reload)
+	gulp.watch(['./*.js', 'playground/**/*.{html,gutt}'], templates)
 }
 
 function templates() {
@@ -61,6 +66,14 @@ function templates() {
 				return file
 			}))
 			.pipe(gulp.dest('playground'))
+	})
+	.catch((error) => {
+		if (browserSync) {
+			browserSync.publicInstance.notify(
+				`<pre style="text-align: left">${error}</pre>`,
+				5000
+			)
+		}
 	})
 }
 
