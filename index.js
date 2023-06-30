@@ -482,6 +482,7 @@ function handleTag(node, templateIndex, instructionIndex, ctx) {
   switch (node.name) {
     case 'inline-svg':
     case 'template':
+    case 'state-provider':
       return ''
     case 'import':
       return handleImportStatement(node, templateIndex, instructionIndex, ctx)
