@@ -87,7 +87,7 @@ function logicNodeHandler(node, templateIndex, instructionIndex, ctx) {
   var nextInstructionIndex = ++ctx.index
 
   if (node.expr.type === 'var' && node.expr.value === 'children') {
-    return templates.setChildrenAnchor(nextInstructionIndex)
+    return templates.setChildrenAnchor(instructionIndex, nextInstructionIndex)
   } else {
     ctx.templates[templateIndex] += templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
     ctx.textInstructions[nextInstructionIndex] =

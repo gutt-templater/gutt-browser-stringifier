@@ -485,17 +485,18 @@ module.exports = function (ctx, params) {
 			child = children[index]\n\
 			lookaheadNode = findLookaheadNode(lookahead, child)\n\
 \n\
-	    	if (typeof child === \'string\') {\n\
-	    		nodes.push(createTextElement(child, lookaheadNode))\n\
-	    	} else if (child.nodeType && child.nodeType === 8) {\n\
-	    		nodes.push(child)\n\
-	    	} else if (child.length == 2) {\n\
-	    		nodes.push(createAnchor.apply(null, child))\n\
-	    		child[0].lookahead[child[1]] = { 0: lookahead }\n\
-	    	} else if (child[0] !== \'!DOCTYPE\') {\n\
-	    		var element = ' + addIfModule('await ') + 'createElement(child, lookaheadNode)\n\
-	    		nodes.push(element)\n\
-	    	}\n\
+			if (typeof child === \'string\') {\n\
+				nodes.push(createTextElement(child, lookaheadNode))\n\
+			} else if (child.length == 2 && child[0].nodeType && child[0].nodeType === 8) {\n\
+				Array.prototype.splice.apply(child[1], [0, 0].concat(copy(lookahead)))\n\
+				nodes.push(child[0])\n\
+			} else if (child.length == 2) {\n\
+				nodes.push(createAnchor.apply(null, child))\n\
+				child[0].lookahead[child[1]] = { 0: lookahead }\n\
+			} else if (child[0] !== \'!DOCTYPE\') {\n\
+				var element = ' + addIfModule('await ') + 'createElement(child, lookaheadNode)\n\
+				nodes.push(element)\n\
+			}\n\
 		}\n\
 \n\
 		return nodes\n\
@@ -635,7 +636,7 @@ module.exports = function (ctx, params) {
 			if (booleanAttributes.indexOf(attribute) !== -1) {\n\
 				layerAttributes.element[attribute] = value\n\
 			} else {\n\
-				layerAttributes.element.setAttribute(attribute, value)\n\
+				layerAttributes.element.setAttribute(attribute, value || \'\')\n\
 			}\n\
 \n\
 			layerAttributes.cache[attribute] = true\n\
@@ -784,7 +785,9 @@ module.exports = function (ctx, params) {
 		' + addIfModule('await ') + 'forEach(layer.lookahead, ' + addIfModule('async ') + 'function (lookaheads) {\n\
 			' + addIfModule('await ') + 'forEach(lookaheads, ' + addIfModule('async ') + 'function (localLookahead) {\n\
 				if (lookahead !== localLookahead) {\n\
-					' + addIfModule('await ') + 'forEach(localLookahead, removeElement)\n\
+					' + addIfModule('await ') + 'forEach(localLookahead, function (element) {\n\
+						if ((lookahead || []).indexOf(element) === -1) removeElement(element)\n\
+					})\n\
 \n\
 					localLookahead.splice(0, localLookahead.length)\n\
 				}\n\
@@ -808,7 +811,7 @@ module.exports = function (ctx, params) {
 		') + '\n\
 		layers[0].lookahead[0] = { 0: lookahead ? lookahead : copy(mountNode.childNodes) }\n\
 		' + addIfModule('await ') + 'templates[0](layers[0])\n\
-		removeLookahead(layers[0])\n\
+		' + addIfModule('await ') + 'removeLookahead(layers[0])\n\
 	}\n\
 \n\
 	function setState(data) {\n\

@@ -58,8 +58,8 @@ module.exports = {
 		return 'handleTextNode(layer, ' + index + ', ' + content + ')\n'
 	},
 
-	setChildrenAnchor: function (instructionIndex) {
-		return 'layer.anchors[' + instructionIndex + '] = childrenAnchor\n'
+	setChildrenAnchor: function (instructionIndex, nextInstructionIndex) {
+		return '[layer.anchors[' + nextInstructionIndex + '] = childrenAnchor, layer.lookahead[' + instructionIndex + '][0]]\n'
 	},
 
 	assertion: function (name, value) {
