@@ -105,6 +105,12 @@ function handleFunction(tree, ctx) {
 			return '[' + params.join(', ') + '].filter(function (className) {'+
 			' return Boolean(className)' +
 			'}).join(" ")'
+
+		case 'json_encode':
+			return 'JSON.stringify(' + params[0] + ')'
+		case 'json_decode':
+			return 'JSON.parse(' + params[0] + ')'
+
 		default:
 			return funcName + '(' + params.join(', ') + ')'
 	}
