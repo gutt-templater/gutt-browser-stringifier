@@ -8,7 +8,9 @@
 
 	<p>Difficult case when component items right after static content</p>
 
-	<sub-component-with-children>
-		<s>I am children</s>
-	</sub-component-with-children>
+	<div>
+		<sub-component-with-children>
+			<s>I am children</s>
+		</sub-component-with-children>
+	</div>
 </section>
