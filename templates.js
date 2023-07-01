@@ -43,8 +43,8 @@ module.exports = {
 		) +
 		'var initialScope = {' + params.join(',') + '}\n\
 \n\
-		if (typeof layer.components[' + layer + '] === \'undefined\') {\n\
-			var result =' + (isModule ? 'await ' : '') + ' imports[\'' + name + '\'](layer.anchors[' + layer + '].parentNode, layer.anchors[' + layer + '], initialScope, state, layer.lookahead[' + layer + '][0]' +
+		if (!exists(layer.components[' + layer + '])) {\n\
+			var result = ' + (isModule ? 'await ' : '') + ' imports[\'' + name + '\'](layer.anchors[' + layer + '].parentNode, layer.anchors[' + layer + '], initialScope, state, layer.lookahead[' + layer + '][0]' +
 			(typeof childrenLayer !== 'undefined' ? ', anchor' : '')+ ') \n\
 			layer.components[' + layer + '] = result.setState\n\
 			layer.elements[' + layer + '] = result.elements\n\

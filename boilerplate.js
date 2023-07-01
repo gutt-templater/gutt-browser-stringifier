@@ -3,8 +3,7 @@ module.exports = function (ctx, params) {
 		return params.type === 'module' ? positive : negative || ''
 	}
 
-	var createInstructions = [],
-		templates = [],
+	var templates = [],
 		instructions = [],
 		dynamicNodes = [],
 		imports = [],
@@ -24,7 +23,7 @@ module.exports = function (ctx, params) {
 				field + ': ' + addIfModule('async ') + 'function (layer) {\n\
 	layer.index = -1\n\
 ' + ctx.templates[field] + '\n\
-	' + addIfModule('await ') + 'handleTail(layer)\n\
+	handleTail(layer)\n\
 }'
 			)
 		}
@@ -82,6 +81,9 @@ module.exports = function (ctx, params) {
 	return 'const main = ' + addIfModule('async ') + 'function (mountNode) {\n\
 	var MKARR_OPEN = 2 << 1;\n\
 	var MKARR_CLOSE = 1 << 1;\n\
+	function exists(e) {\n\
+		return typeof e !== \'undefined\'\n\
+	}\n\
 	function mkArr(start, end, flag) {\n\
 		var arr = [], i;\n\
 		if (flag & MKARR_OPEN) {\n\
@@ -164,7 +166,7 @@ module.exports = function (ctx, params) {
 		return str_pad(str, len, sub, STRPADBOTH);\n\
 	}\n\
 	function str_pad(str, len, sub, type) {\n\
-		if (typeof type === \'undefined\') type = STRPADRIGHT;\n\
+		if (!exists(type)) type = STRPADRIGHT;\n\
 		var half = \'\', pad_to_go;\n\
 		if ((pad_to_go = len - str.length) > 0) {\n\
 			if (type & STRPADLEFT) { str = __str_pad_repeater(sub, pad_to_go) + str; }\n\
@@ -209,7 +211,7 @@ module.exports = function (ctx, params) {
 		return false;\n\
 	}\n\
 	function arr_len(obj) {\n\
-		if(typeof obj.length !== \'undefined\') return obj.length;\n\
+		if(exists(obj.length)) return obj.length;\n\
 		var i, length = 0;\n\
 		for(i in obj) if (Object.prototype.hasOwnProperty.call(obj, i)) length++;\n\
 		return length;\n\
@@ -228,7 +230,7 @@ module.exports = function (ctx, params) {
 	}\n\
 	function arr_splice(arr, st, en, els) {\n\
 		var prms = [st];\n\
-		if (typeof en !== \'undefined\') prms.push(en);\n\
+		if (exists(en)) prms.push(en);\n\
 		return Array.prototype.splice.apply(arr, prms.concat(els));\n\
 	}\n\
 	function arr_pad(src, len, el) {\n\
@@ -356,7 +358,7 @@ module.exports = function (ctx, params) {
 				if (index < children.items.length) {\n\
 					nextSibling = children.layers[index].elements[layerIndex + 1]\n\
 \n\
-					if (typeof nextSibling === \'undefined\') {\n\
+					if (!exists(nextSibling)) {\n\
 						nextSibling = children.layers[index].anchors[layerIndex + 1]\n\
 					} else if (nextSibling instanceof Array) {\n\
 						nextSibling = nextSibling[0]\n\
@@ -382,7 +384,7 @@ module.exports = function (ctx, params) {
 \n\
 					moveElement = children.layers[preservedIndex].elements[layerIndex + 1]\n\
 \n\
-					if (typeof moveElement !== \'undefined\') {\n\
+					if (exists(moveElement)) {\n\
 						moveElement.forEach(function (element) { insertBefore(nextSibling.parentNode, element, nextSibling) })\n\
 					}\n\
 \n\
@@ -432,7 +434,7 @@ module.exports = function (ctx, params) {
 	}\n\
 \n\
 	function createChildren(layer, index) {\n\
-		if (typeof layer.children[index] === \'undefined\') {\n\
+		if (!exists(layer.children[index])) {\n\
 			layer.children[index] = {\n\
 				layers: [],\n\
 				items: []\n\
@@ -515,7 +517,7 @@ module.exports = function (ctx, params) {
 \n\
 		applyAttributes(element, attributes)\n\
 \n\
-		if (typeof layer.attributes[layerIndex] === \'undefined\') {\n\
+		if (!exists(layer.attributes[layerIndex])) {\n\
 			layer.attributes[layerIndex] = {}\n\
 		}\n\
 \n\
@@ -603,13 +605,13 @@ module.exports = function (ctx, params) {
 		}\n\
 \n\
 		for (index in nextAttributes) {\n\
-			if (typeof currentAttributes[index] === \'undefined\' || currentAttributes[index] !== nextAttributes[index]) {\n\
+			if (!exists(currentAttributes[index]) || currentAttributes[index] !== nextAttributes[index]) {\n\
 				return false\n\
 			}\n\
 		}\n\
 \n\
 		for (index in currentAttributes) {\n\
-			if (typeof nextAttributes[index] === \'undefined\' || currentAttributes[index] !== nextAttributes[index]) {\n\
+			if (!exists(nextAttributes[index]) || currentAttributes[index] !== nextAttributes[index]) {\n\
 				return false\n\
 			}\n\
 		}\n\
@@ -643,7 +645,7 @@ module.exports = function (ctx, params) {
 		})\n\
 \n\
 		forEach(layerAttributes.cache, function (value, attribute) {\n\
-			if (typeof attributes[attribute] === \'undefined\') {\n\
+			if (!exists(attributes[attribute])) {\n\
 				layerAttributes.element.removeAttribute(attribute)\n\
 				delete attributes[attribute]\n\
 			}\n\
@@ -651,11 +653,11 @@ module.exports = function (ctx, params) {
 	}\n\
 \n\
 	function handleTextNode(layer, index, content) {\n\
-		if (typeof layer.textCache[index] !== \'undefined\' && layer.textCache[index] !== content) {\n\
+		if (exists(layer.textCache[index]) && layer.textCache[index] !== content) {\n\
 			remove(TEXT_NODE, layer, index)\n\
 		}\n\
 \n\
-		if (typeof layer.textCache[index] === \'undefined\' || layer.textCache[index] !== content) {\n\
+		if (!exists(layer.textCache[index]) || layer.textCache[index] !== content) {\n\
 			layer.elements[index] = createElementsFromContent(String(content))\n\
 			insertLayerElements(layer, index)\n\
 			layer.textCache[index] = content\n\
@@ -709,7 +711,7 @@ module.exports = function (ctx, params) {
 \n\
 		if (anchor && anchor.nextSibling) {\n\
 			insertBefore(parent, element, anchor.nextSibling)\n\
-		} else if (parent !== document || element.nodeType === 8)  {\n\
+		} else if (parent !== document || element.nodeType === 8) {\n\
 			parent.appendChild(element)\n\
 		}\n\
 	}\n\
@@ -766,7 +768,7 @@ module.exports = function (ctx, params) {
 			layer.state.splice(layer.index, 1)\n\
 			layer.index--\n\
 			handleTemplate(instructionIndex, layer)\n\
-		} else if (typeof dynamicNodes[instructionIndex] !== \'undefined\') {\n\
+		} else if (exists(dynamicNodes[instructionIndex])) {\n\
 			instructions[instructionIndex](layer)\n\
 		}\n\
 \n\
@@ -799,7 +801,7 @@ module.exports = function (ctx, params) {
 		})\n\
 	}\n\
 \n\
-	if (typeof templates[0] !== \'undefined\' && typeof layers[0] !== \'undefined\') {\n\
+	if (exists(templates[0]) && exists(layers[0])) {\n\
 		' + addIfModule('var componentNames = Object.keys(imports)\n\
 		var modules = ' + addIfModule('await ') + 'Promise.all(Object.values(imports))\n\
 \n\
@@ -823,7 +825,7 @@ module.exports = function (ctx, params) {
 			state = data\n\
 		}\n\
 \n\
-		if (typeof templates[0] !== \'undefined\' && typeof layers[0] !== \'undefined\') {\n\
+		if (exists(templates[0]) && exists(layers[0])) {\n\
 			templates[0](layers[0])\n\
 		}\n\
 \n\

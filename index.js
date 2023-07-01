@@ -88,12 +88,12 @@ function logicNodeHandler(node, templateIndex, instructionIndex, ctx) {
 
   if (node.expr.type === 'var' && node.expr.value === 'children') {
     return templates.setChildrenAnchor(instructionIndex, nextInstructionIndex)
-  } else {
-    ctx.templates[templateIndex] += templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
-    ctx.textInstructions[nextInstructionIndex] =
-      templates.handleTextNode(nextInstructionIndex, logicHandler(node, ctx))
-    ctx.dynamicNodes[nextInstructionIndex] = 'TEXT_NODE'
   }
+
+  ctx.templates[templateIndex] += templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
+  ctx.textInstructions[nextInstructionIndex] =
+    templates.handleTextNode(nextInstructionIndex, logicHandler(node, ctx))
+  ctx.dynamicNodes[nextInstructionIndex] = 'TEXT_NODE'
 
   return templates.createAnchor(nextInstructionIndex)
 }
@@ -101,8 +101,8 @@ function logicNodeHandler(node, templateIndex, instructionIndex, ctx) {
 function handleComponent(node, templateIndex, instructionIndex, ctx) {
   var nextInstructionIndex = ++ctx.index
   var params = []
-  var children
   var childrenInstructionIndex = ++ctx.index
+  var content
 
   node.attrs.forEach(function (attr) {
     params.push(templates.createObjectItem(
@@ -121,10 +121,10 @@ function handleComponent(node, templateIndex, instructionIndex, ctx) {
   )
   ctx.dynamicNodes[nextInstructionIndex] = 'COMPONENT'
 
-  if (node.firstChild) {
+  if (node.firstChild && (content = walk(node.firstChild, templateIndex, instructionIndex, ctx))) {
     ctx.templates[templateIndex] += templates.chainStatePush(childrenInstructionIndex, ctx.params.type === 'module')
     ctx.createInstructions[childrenInstructionIndex] = templates.createInstriction(
-      walk(node.firstChild, templateIndex, instructionIndex, ctx),
+      content,
       childrenInstructionIndex
     )
   }
@@ -466,12 +466,24 @@ function styleNodeHandler(node, templateIndex, instructionIndex, ctx) {
   return templates.createAnchor(nextInstructionIndex)
 }
 
+function handleSlotStatement(instructionIndex, ctx) {
+  var nextInstructionIndex = ++ctx.index
+
+  return templates.setChildrenAnchor(instructionIndex, nextInstructionIndex)
+}
+
 function escapeString(text) {
   return text.replace(/\n/g, '\\n').replace(/\'/g, '\\\'')
 }
 
 function handleText(node) {
-  return '\'' + escapeString(node.text) + '\''
+  var text = escapeString(node.text)
+
+  if (!String(node.text).trim().length) {
+    return ''
+  }
+
+  return '\'' + text + '\''
 }
 
 function handleString(node) {
@@ -504,6 +516,8 @@ function handleTag(node, templateIndex, instructionIndex, ctx) {
       return handleForEachStatement(node, templateIndex, instructionIndex, ctx)
     case 'if':
       return handleIfStatement(node, templateIndex, instructionIndex, ctx)
+    case 'slot':
+      return handleSlotStatement(instructionIndex, ctx)
 
     default:
       if (typeof ctx.imports[node.name] !== 'undefined') {
