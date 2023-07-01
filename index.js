@@ -102,7 +102,6 @@ function handleComponent(node, templateIndex, instructionIndex, ctx) {
   var nextInstructionIndex = ++ctx.index
   var params = []
   var childrenInstructionIndex = ++ctx.index
-  var content
 
   node.attrs.forEach(function (attr) {
     params.push(templates.createObjectItem(
@@ -117,19 +116,27 @@ function handleComponent(node, templateIndex, instructionIndex, ctx) {
     node.name,
     params,
     ctx.params.type === 'module',
-    childrenInstructionIndex
+    hasContent(node) ? childrenInstructionIndex : undefined
   )
   ctx.dynamicNodes[nextInstructionIndex] = 'COMPONENT'
 
-  if (node.firstChild && (content = walk(node.firstChild, templateIndex, instructionIndex, ctx))) {
+  if (hasContent(node)) {
     ctx.templates[templateIndex] += templates.chainStatePush(childrenInstructionIndex, ctx.params.type === 'module')
     ctx.createInstructions[childrenInstructionIndex] = templates.createInstriction(
-      content,
+      walk(node.firstChild, templateIndex, instructionIndex, ctx),
       childrenInstructionIndex
     )
   }
 
   return templates.createAnchor(nextInstructionIndex)
+}
+
+function hasContent(node) {
+  if (node.firstChild && node.firstChild === node.lastChild && node.firstChild.type === 'text' && !String(node.firstChild.text).trim().length) {
+    return false
+  }
+
+  return node.firstChild
 }
 
 function handleImportStatement(node, templateIndex, instructionIndex, ctx) {
@@ -146,7 +153,6 @@ function handleImportStatement(node, templateIndex, instructionIndex, ctx) {
 
 function handleUseStateStatement(node, templateIndex, instructionIndex, ctx) {
   var params = extractValuesFromAttrs(node.attrs, ['name', 'value'])
-  var name = handleNode(params.name, templateIndex, instructionIndex, ctx)
   var instruction = templates.useStateStatement(
     params.name.expr.value,
     logicHandler(params.name, ctx, true),
@@ -466,8 +472,18 @@ function styleNodeHandler(node, templateIndex, instructionIndex, ctx) {
   return templates.createAnchor(nextInstructionIndex)
 }
 
-function handleSlotStatement(instructionIndex, ctx) {
+function handleSlotStatement(node, templateIndex, instructionIndex, ctx) {
   var nextInstructionIndex = ++ctx.index
+
+  if (hasContent(node)) {
+    ctx.templates[templateIndex] += 'if (!childrenAnchor) {\n' +
+      templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
+
+    handleTemplate(node.firstChild, templateIndex, nextInstructionIndex, ctx)
+
+    ctx.templates[templateIndex] += '}\n'
+    ctx.index++
+  }
 
   return templates.setChildrenAnchor(instructionIndex, nextInstructionIndex)
 }
@@ -517,7 +533,7 @@ function handleTag(node, templateIndex, instructionIndex, ctx) {
     case 'if':
       return handleIfStatement(node, templateIndex, instructionIndex, ctx)
     case 'slot':
-      return handleSlotStatement(instructionIndex, ctx)
+      return handleSlotStatement(node, templateIndex, instructionIndex, ctx)
 
     default:
       if (typeof ctx.imports[node.name] !== 'undefined') {

@@ -341,13 +341,13 @@ module.exports = function (ctx, params) {
 		return -1\n\
 	}\n\
 \n\
-	function handleArray(parentLayer, layerIndex, iterator) {\n\
+	' + addIfModule('async ') + 'function handleArray(parentLayer, layerIndex, iterator) {\n\
 		var index = 0, layer, preservedIndex, nextSibling, moveElement\n\
 		var usedIndexes = []\n\
 		var unusedIndexes = []\n\
 		var children = createChildren(parentLayer, layerIndex)\n\
 \n\
-		iterator(' + addIfModule('async ') + 'function (field, item) {\n\
+		' + addIfModule('await ') + 'iterator(' + addIfModule('async ') + 'function (field, item) {\n\
 			preservedIndex = indexOf(children.items, item, usedIndexes)\n\
 \n\
 			if (preservedIndex === -1) {\n\
@@ -420,10 +420,8 @@ module.exports = function (ctx, params) {
 	}\n\
 \n\
 	function removeArrayLayer(layer) {\n\
-		var childrenIndex, layerIndex, elementIndex\n\
-\n\
 		forEach(layer.children, function (children, childrenIndex) {\n\
-			forEach(children.layers, function (layerIndex, layer) {\n\
+			forEach(children.layers, function (layer) {\n\
 				removeArrayLayer(layer)\n\
 			})\n\
 		})\n\

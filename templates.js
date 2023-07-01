@@ -12,7 +12,8 @@ module.exports = {
 	},
 
 	handleArray: function (layer, from, item, isModule, field) {
-		return (isModule ? 'await ' : '') + 'handleArray(layer, ' + layer + ', ' + (isModule ? 'async ' : '') + 'function (iteration) {\nforEach(' + from + ', ' + (isModule ? 'async ' : '') + 'function (item, field) {\n' + item + ' = item\n' + field + '\n' + (isModule ? 'await ' : '') + 'iteration(field, item)\n})\n})\n'
+		return (isModule ? 'await ' : '') + 'handleArray(layer, ' + layer + ', ' + (isModule ? 'async ' : '') + 'function (iteration) {\n' +
+		(isModule ? 'await ' : '') + 'forEach(' + from + ', ' + (isModule ? 'async ' : '') + 'function (item, field) {\n' + item + ' = item\n' + field + '\n' + (isModule ? 'await ' : '') + 'iteration(field, item)\n})\n})\n'
 	},
 
 	createElement: function (name, attributes, children, layer, index) {
@@ -59,7 +60,7 @@ module.exports = {
 	},
 
 	setChildrenAnchor: function (instructionIndex, nextInstructionIndex) {
-		return '[layer.anchors[' + nextInstructionIndex + '] = childrenAnchor, layer.lookahead[' + instructionIndex + '][0]]\n'
+		return 'childrenAnchor ? [layer.anchors[' + nextInstructionIndex + '] = childrenAnchor, layer.lookahead[' + instructionIndex + '][0]] : [layer, ' + nextInstructionIndex + ']\n'
 	},
 
 	assertion: function (name, value) {
