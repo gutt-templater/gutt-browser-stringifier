@@ -488,6 +488,39 @@ function handleSlotStatement(node, templateIndex, instructionIndex, ctx) {
   return templates.setChildrenAnchor(instructionIndex, nextInstructionIndex)
 }
 
+function handleSelfStatement(node, templateIndex, instructionIndex, ctx) {
+  var nextInstructionIndex = ++ctx.index
+  var params = []
+  var childrenInstructionIndex = ++ctx.index
+
+  node.attrs.forEach(function (attr) {
+    params.push(templates.createObjectItem(
+      handleNode(attr.name, templateIndex, nextInstructionIndex, ctx),
+      handleNode(attr.value, templateIndex, nextInstructionIndex, ctx)
+    ))
+  })
+
+  ctx.templates[templateIndex] += templates.chainStatePush(nextInstructionIndex, ctx.params.type === 'module')
+  ctx.componentInstuctions[nextInstructionIndex] = templates.selfInstuction(
+    nextInstructionIndex,
+    node.name,
+    params,
+    ctx.params.type === 'module',
+    hasContent(node) ? childrenInstructionIndex : undefined
+  )
+  ctx.dynamicNodes[nextInstructionIndex] = 'COMPONENT'
+
+  if (hasContent(node)) {
+    ctx.templates[templateIndex] += templates.chainStatePush(childrenInstructionIndex, ctx.params.type === 'module')
+    ctx.createInstructions[childrenInstructionIndex] = templates.createInstriction(
+      walk(node.firstChild, templateIndex, instructionIndex, ctx),
+      childrenInstructionIndex
+    )
+  }
+
+  return templates.createAnchor(nextInstructionIndex)
+}
+
 function escapeString(text) {
   return text.replace(/\n/g, '\\n').replace(/\'/g, '\\\'')
 }
@@ -534,6 +567,8 @@ function handleTag(node, templateIndex, instructionIndex, ctx) {
       return handleIfStatement(node, templateIndex, instructionIndex, ctx)
     case 'slot':
       return handleSlotStatement(node, templateIndex, instructionIndex, ctx)
+    case 'self':
+      return handleSelfStatement(node, templateIndex, instructionIndex, ctx)
 
     default:
       if (typeof ctx.imports[node.name] !== 'undefined') {

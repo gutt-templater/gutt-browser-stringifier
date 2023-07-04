@@ -45,7 +45,26 @@ module.exports = {
 		'var initialScope = {' + params.join(',') + '}\n\
 \n\
 		if (!exists(layer.components[' + layer + '])) {\n\
-			var result = ' + (isModule ? 'await ' : '') + ' imports[\'' + name + '\'](layer.anchors[' + layer + '].parentNode, layer.anchors[' + layer + '], initialScope, state, layer.lookahead[' + layer + '][0]' +
+			var result = ' + (isModule ? 'await ' : '') + 'imports[\'' + name + '\'](layer.anchors[' + layer + '].parentNode, layer.anchors[' + layer + '], initialScope, state, layer.lookahead[' + layer + '][0]' +
+			(typeof childrenLayer !== 'undefined' ? ', anchor' : '')+ ') \n\
+			layer.components[' + layer + '] = result.setState\n\
+			layer.elements[' + layer + '] = result.elements\n\
+		} else {\n\
+			layer.elements[' + layer + '] = layer.components[' + layer + '](initialScope, state)\n\
+			\n\
+		}\n'
+	},
+
+	selfInstuction: function (layer, name, params, isModule, childrenLayer) {
+		return (typeof childrenLayer !== 'undefined' ?
+			'var anchor = createAnchor(layer, ' + childrenLayer + ')\n\
+			layer.lookahead[' + childrenLayer + '] = layer.lookahead[' + layer + ']\n' :
+			''
+		) +
+		'var initialScope = {' + params.join(',') + '}\n\
+\n\
+		if (!exists(layer.components[' + layer + '])) {\n\
+			var result = ' + (isModule ? 'await ' : '') + 'main(layer.anchors[' + layer + '].parentNode, layer.anchors[' + layer + '], initialScope, state, layer.lookahead[' + layer + '][0]' +
 			(typeof childrenLayer !== 'undefined' ? ', anchor' : '')+ ') \n\
 			layer.components[' + layer + '] = result.setState\n\
 			layer.elements[' + layer + '] = result.elements\n\

@@ -78,7 +78,7 @@ module.exports = function (ctx, params) {
 		}
 	}
 
-	return 'const main = ' + addIfModule('async ') + 'function (mountNode) {\n\
+	return 'const main = ' + addIfModule('async ') + 'function main(mountNode) {\n\
 	var MKARR_OPEN = 2 << 1;\n\
 	var MKARR_CLOSE = 1 << 1;\n\
 	function exists(e) {\n\

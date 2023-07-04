@@ -1,0 +1,12 @@
+<param name={$data} value={[]} />
+
+<div>
+	<for-each item={$item} from={$data}>
+		<div>
+			{$item.value}
+		</div>
+		<if test={$item.children?}>
+			<self data={$item.children} />
+		</if>
+	</for-each>
+</div>

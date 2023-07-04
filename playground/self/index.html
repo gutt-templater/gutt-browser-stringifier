@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Gutt browser stringifier playground</title>
+	<style>
+		.scope {
+			padding: 1px 10px;
+			background: #ececec;
+		}
+
+		.scope + .scope {
+			margin-top: 20px;
+		}
+	</style>
+</head>
+<body>
+	<h1>Gutt browser stringifier playground</h1>
+
+	<div class="scope" id="app">
+	</div>
+
+	<script type="module">
+		const { default: template } = await import('./entry.gutt.js')
+
+		const setState = await template(document.getElementById('app'), {
+			data: [
+				{value: 1, children: [
+					{value: 11},
+					{value: 12},
+					{value: 13, children: [
+						{value: 131}
+					]}
+				]},
+				{value: 2},
+				{value: 3}
+			]
+		})
+	</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+<import name="self-component" from="./self.gutt" />
+
+<use-state name={$data} value={[]} />
+
+<self-component data={$data} />
