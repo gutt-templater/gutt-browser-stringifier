@@ -4,7 +4,7 @@
 <section>
 	<h2>Hydrated imported component</h2>
 
-	<sub-component />
+	<sub-component disabled />
 
 	<p>Difficult case when component items right after static content</p>
 

@@ -106,7 +106,7 @@ function handleComponent(node, templateIndex, instructionIndex, ctx) {
   node.attrs.forEach(function (attr) {
     params.push(templates.createObjectItem(
       handleNode(attr.name, templateIndex, nextInstructionIndex, ctx),
-      handleNode(attr.value, templateIndex, nextInstructionIndex, ctx)
+      attr.value === null ? 'true' : handleNode(attr.value, templateIndex, nextInstructionIndex, ctx)
     ))
   })
 
