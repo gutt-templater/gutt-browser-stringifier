@@ -509,22 +509,23 @@ module.exports = function (ctx, params) {
 		var nodes = []\n\
 		var index\n\
 		var child\n\
-		var lookaheadNode\n\
 \n\
 		for (index = 0; index < children.length; index++) {\n\
 			child = children[index]\n\
-			lookaheadNode = findLookaheadNode(lookahead, child)\n\
 \n\
 			if (typeof child === \'string\') {\n\
-				nodes.push(createTextElement(child, lookaheadNode))\n\
+				nodes.push(createTextElement(child, findLookaheadNode(lookahead, child)))\n\
 			} else if (child.length == 2 && child[0].nodeType && child[0].nodeType === 8) {\n\
-				Array.prototype.splice.apply(child[1], [0, 0].concat(copy(lookahead)))\n\
+				if (child[1] !== lookahead) {\n\
+					Array.prototype.splice.apply(child[1], [0, 0].concat(copy(lookahead)))\n\
+				}\n\
+\n\
 				nodes.push(child[0])\n\
 			} else if (child.length == 2) {\n\
 				nodes.push(createAnchor.apply(null, child))\n\
 				child[0].lookahead[child[1]] = { 0: lookahead }\n\
 			} else if (child[0] !== \'!DOCTYPE\') {\n\
-				var element = ' + addIfModule('await ') + 'createElement(child, lookaheadNode)\n\
+				var element = ' + addIfModule('await ') + 'createElement.apply(null, child.concat([findLookaheadNode(lookahead, child)]))\n\
 				nodes.push(element)\n\
 			}\n\
 		}\n\
@@ -532,13 +533,7 @@ module.exports = function (ctx, params) {
 		return nodes\n\
 	}\n\
 \n\
-	' + addIfModule('async ') + 'function createElement(child, lookaheadNode) {\n\
-		var nodeType = child[0]\n\
-		var attributes = child[1]\n\
-		var children = child[2]\n\
-		var layer = child[3]\n\
-		var layerIndex = child[4]\n\
-		var index = child[5]\n\
+	' + addIfModule('async ') + 'function createElement(nodeType, attributes, children, layer, layerIndex, index, lookaheadNode) {\n\
 		var element = lookaheadNode || document.createElement(nodeType)\n\
 		var nextSibling\n\
 		var nodes\n\
