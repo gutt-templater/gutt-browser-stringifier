@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Gutt browser stringifier playground</title>
+	<style>
+		.scope {
+			padding: 1px 10px;
+			background: #ececec;
+		}
+
+		.scope + .scope {
+			margin-top: 20px;
+		}
+	</style>
+</head>
+<body>
+	<h1>Deep hydrate</h1>
+
+	<section class="scope" id="app">
+		<div class="blank"><div class="container"><h2>Page</h2></div></div>
+	</section>
+
+	<script type="module">
+		const { default: pageTempalte } = await import('./page.gutt.js')
+
+		setTimeout(() => pageTempalte(document.getElementById('app'), {}), 1000)
+	</script>
+</body>
+</html>

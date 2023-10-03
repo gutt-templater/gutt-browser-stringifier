@@ -1,0 +1,5 @@
+<import name="layout-component" from="./layout.gutt" />
+
+<layout-component>
+	<h2>Page changed</h2>
+</layout-component>

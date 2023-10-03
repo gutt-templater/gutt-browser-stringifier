@@ -3,7 +3,7 @@ module.exports = {
 		return '\t' + (isModule ? 'await ' : '') + 'handleTemplate(' + layer + ', layer)\n'
 	},
 
-	createInstriction(children, layer) {
+	createInstruction(children, layer) {
 		return 'createNodes([' + children + '], layer.lookahead[' + layer + '][0])\n'
 	},
 
@@ -21,11 +21,11 @@ module.exports = {
 	},
 
 	createScript: function (attributes, body, layer) {
-		return 'createScript({' + attributes.join(', ') + '}, \'' + body + '\', layer, layer.lookahead[' + layer + '][0])\n'
+		return 'createTag(\'script\', {' + attributes.join(', ') + '}, \'' + body + '\', layer, layer.lookahead[' + layer + '][0])\n'
 	},
 
 	createStyle: function (attributes, body, layer) {
-		return 'createStyle({' + attributes.join(', ') + '}, \'' + body + '\', layer, layer.lookahead[' + layer + '][0])\n'
+		return 'createTag(\'style\', {' + attributes.join(', ') + '}, \'' + body + '\', layer, layer.lookahead[' + layer + '][0])\n'
 	},
 
 	handleAttributes: function (layer, index, attributes) {
