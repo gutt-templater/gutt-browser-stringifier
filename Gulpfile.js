@@ -39,7 +39,8 @@ function start(done) {
 	browserSync = BrowserSync.init({
 		server: {
 			baseDir: "./playground"
-		}
+		},
+		open: false
 	})
 
 	gulp.watch(['./*.js', 'playground/**/*.{html,gutt}'], templates)

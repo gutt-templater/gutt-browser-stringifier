@@ -497,8 +497,6 @@ module.exports = function (ctx, params) {
 				lookahead.splice(index, 1)\n\
 \n\
 				return lookaheadNode\n\
-			} else {\n\
-				continue\n\
 			}\n\
 		}\n\
 \n\
@@ -766,7 +764,6 @@ module.exports = function (ctx, params) {
 		} else if (exists(dynamicNodes[instructionIndex])) {\n\
 			instructions[instructionIndex](layer)\n\
 		}\n\
-\n\
 	}\n\
 \n\
 	function handleTail(layer) {\n\

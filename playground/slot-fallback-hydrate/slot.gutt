@@ -1,0 +1,5 @@
+<import name="children-component" from="./children-component.gutt" />
+
+<section>
+	<children-component />
+</section>

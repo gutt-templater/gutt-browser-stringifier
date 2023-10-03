@@ -1,0 +1,5 @@
+<aside>
+	<slot>
+		<h2>Fallback</h2>
+	</slot>
+</aside>
