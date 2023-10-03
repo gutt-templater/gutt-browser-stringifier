@@ -1,0 +1,8 @@
+<import name="blank-component" from="./blank.gutt" />
+<import name="container-component" from="./container.gutt" />
+
+<blank-component>
+	<container-component>
+		<slot />
+	</container-component>
+</blank-component>
