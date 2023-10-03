@@ -20,6 +20,7 @@ function handleFunction(tree, ctx) {
 
 	funcName =
 		(tree.value.type === 'var' && !tree.value.keys.length ? tree.value.value : expression(tree.value))
+	ctx.usedFunctions.push(funcName)
 
 	switch (funcName) {
 		case 'str_sub':
@@ -259,6 +260,8 @@ function expression(tree, ctx, isSafeRead, isToWrite) {
 
 		case 'array':
 			if (tree.range) {
+				ctx.usedFunctions.push('mkArr')
+
 				switch (tree.range.type) {
 					case 'open':
 						str = 'mkArr(' + expression(tree.range.value[0], ctx)

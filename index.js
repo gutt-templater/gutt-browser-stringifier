@@ -122,7 +122,7 @@ function handleComponent(node, templateIndex, instructionIndex, ctx) {
 
   if (hasContent(node)) {
     ctx.templates[templateIndex] += templates.chainStatePush(childrenInstructionIndex, ctx.params.type === 'module')
-    ctx.createInstructions[childrenInstructionIndex] = templates.createInstriction(
+    ctx.createInstructions[childrenInstructionIndex] = templates.createInstruction(
       walk(node.firstChild, templateIndex, instructionIndex, ctx),
       childrenInstructionIndex
     )
@@ -267,6 +267,7 @@ function handleForEachStatement(node, templateIndex, instructionIndex, ctx) {
   var nextInstructionIndex = ++ctx.index
   var params = extractValuesFromAttrs(node.attrs, ['item', 'from', 'key'])
 
+  ctx.useForEach = true
   ctx.arrayInstructions[nextInstructionIndex] = templates.handleArray(
     nextInstructionIndex,
     logicHandler(params.from, ctx),
@@ -512,7 +513,7 @@ function handleSelfStatement(node, templateIndex, instructionIndex, ctx) {
 
   if (hasContent(node)) {
     ctx.templates[templateIndex] += templates.chainStatePush(childrenInstructionIndex, ctx.params.type === 'module')
-    ctx.createInstructions[childrenInstructionIndex] = templates.createInstriction(
+    ctx.createInstructions[childrenInstructionIndex] = templates.createInstruction(
       walk(node.firstChild, templateIndex, instructionIndex, ctx),
       childrenInstructionIndex
     )
@@ -605,7 +606,7 @@ function handleTemplate(node, templateIndex, instructionIndex, ctx) {
     ctx.templates[templateIndex] = templates.chainStatePush(instructionIndex, ctx.params.type === 'module')
   }
 
-  ctx.createInstructions[instructionIndex] = templates.createInstriction(walk(node, templateIndex, instructionIndex, ctx), instructionIndex)
+  ctx.createInstructions[instructionIndex] = templates.createInstruction(walk(node, templateIndex, instructionIndex, ctx), instructionIndex)
 }
 
 function walk(node, templateIndex, instructionIndex, ctx) {
@@ -638,7 +639,9 @@ function main(args) {
       filepath: filepath,
       stack: [],
       index: 0,
-      params: params
+      params: params,
+      usedFunctions: [],
+      useForEach: false
     }
 
     handleTemplate(ast, 0, 0, ctx)

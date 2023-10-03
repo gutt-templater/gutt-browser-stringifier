@@ -3,6 +3,16 @@ module.exports = function (ctx, params) {
 		return params.type === 'module' ? positive : negative || ''
 	}
 
+	function useFunction(funcName, content) {
+		if (funcName.constructor === Array) {
+			return funcName.filter(function (name) {
+				return ctx.usedFunctions.indexOf(name) !== -1
+			}).length > 0 ? content : ''
+		}
+
+		return ctx.usedFunctions.indexOf(funcName) !== -1 ? content : ''
+	}
+
 	var templates = [],
 		instructions = [],
 		dynamicNodes = [],
@@ -79,11 +89,12 @@ module.exports = function (ctx, params) {
 	}
 
 	return 'const main = ' + addIfModule('async ') + 'function main(mountNode) {\n\
-	var MKARR_OPEN = 2 << 1;\n\
-	var MKARR_CLOSE = 1 << 1;\n\
 	function exists(e) {\n\
 		return typeof e !== \'undefined\'\n\
-	}\n\
+	}\n' +
+	(useFunction('mkArr', '\
+	var MKARR_OPEN = 2 << 1;\n\
+	var MKARR_CLOSE = 1 << 1;\n\
 	function mkArr(start, end, flag) {\n\
 		var arr = [], i;\n\
 		if (flag & MKARR_OPEN) {\n\
@@ -108,7 +119,8 @@ module.exports = function (ctx, params) {
 			}\n\
 		}\n\
 		return arr;\n\
-	}\n\
+	}\n')) +
+	(useFunction('str', '\
 	function str(str, len, sprtr) {\n\
 		if (!len) len = 0;\n\
 		if (typeof str.toString === \'function\') str = str.toString();\n\
@@ -123,33 +135,18 @@ module.exports = function (ctx, params) {
 			str = str_pad(str + \'.\', str.length + 1 + len, \'0\');\n\
 		}\n\
 		return str.replace(\'.\', sprtr);\n\
-	}\n\
+	}\n')) +
+	(useFunction('str_replace', '\
 	function str_replace(str, src, rep) {\n\
 		while (~str.indexOf(src)) {\n\
 			str = str.replace(src, rep);\n\
 		}\n\
 		return str;\n\
-	}\n\
+	}\n')) +
+	(useFunction(['str_pad', 'str_pad_left', 'str_pad_right'], '\
 	var STRPADRIGHT = 1 << 1;\n\
 	var STRPADLEFT = 2 << 1;\n\
 	var STRPADBOTH = 4 << 1;\n\
-	var booleanAttributes = [\n\
-		\'autofocus\',\n\
-		\'autoplay\',\n\
-		\'async\',\n\
-		\'checked\',\n\
-		\'defer\',\n\
-		\'disabled\',\n\
-		\'hidden\',\n\
-		\'loop\',\n\
-		\'multiple\',\n\
-		\'muted\',\n\
-		\'nomodule\',\n\
-		\'open\',\n\
-		\'preload\',\n\
-		\'required\',\n\
-		\'selected\'\n\
-	]\n\
 	function __str_pad_repeater(str, len) {\n\
 		var collect = \'\', i;\n\
 		while(collect.length < len) collect += str;\n\
@@ -178,93 +175,110 @@ module.exports = function (ctx, params) {
 			}\n\
 		}\n\
 		return str;\n\
-	}\n\
+	}\n')) +
+	(useFunction('str_htmlescape', '\
 	function str_htmlescape(html) {\n\
 		return html.replace(/&/g, "&amp;")\n\
 		.replace(/\\</g, "&lt;")\n\
 		.replace(/\\>/g, "&gt;")\n\
 		.replace(/\\"/g, "&quot;");\n\
-	}\n\
+	}\n')) +
+	(useFunction('str_upfirst', '\
 	function str_upfirst(str) {\n\
 		return str.split(/[\\s\\n\\t]+/).map(function (item) {\n\
 			return item.substr(0, 1).toUpperCase() + item.substr(1).toLowerCase();\n\
 		}).join(\' \');\n\
-	}\n\
+	}\n')) +
+	(useFunction('str_camel', '\
 	function str_camel(str) {\n\
 		return str.split(/[\\s\\n\\t]+/).map(function (item, index) {\n\
 			if (!index) return item;\n\
 			return item.substr(0, 1).toUpperCase() + item.substr(1).toLowerCase();\n\
 		}).join(\'\');\n\
-	}\n\
+	}\n')) +
+	(useFunction('str_kebab', '\
 	function str_kebab(str) {\n\
 		return str.split(/[\\s\\n\\t]+/).join(\'-\');\n\
-	}\n\
+	}\n')) +
+	(useFunction('arr_values', '\
 	function arr_values(obj) {\n\
 		var values = [], i;\n\
 		for(i in obj) if (Object.prototype.hasOwnProperty.call(obj, i)) values.push(obj[i]);\n\
 		return values;\n\
-	}\n\
+	}\n')) +
+	(useFunction('arr_contain', '\
 	function arr_contain(obj, value) {\n\
 		if(typeof obj.indexOf === \'function\') return obj.indexOf(value) !== -1;\n\
 		var i;\n\
 		for(i in obj) if (Object.prototype.hasOwnProperty.call(obj, i)) if (obj[i] === value) return true;\n\
 		return false;\n\
-	}\n\
+	}\n')) +
+	(useFunction('arr_len', '\
 	function arr_len(obj) {\n\
 		if(exists(obj.length)) return obj.length;\n\
 		var i, length = 0;\n\
 		for(i in obj) if (Object.prototype.hasOwnProperty.call(obj, i)) length++;\n\
 		return length;\n\
-	}\n\
+	}\n')) +
+	(useFunction('arr_push', '\
 	function arr_push(arr, value) {\n\
 		arr.push(value);\n\
 		return \'\';\n\
-	}\n\
+	}\n')) +
+	(useFunction('arr_unshift', '\
 	function arr_unshift(arr, value) {\n\
 		arr.unshift(value);\n\
 		return \'\';\n\
-	}\n\
+	}\n')) +
+	(useFunction('arr_rand' ,'\
 	function arr_rand(arr, value) {\n\
 		var keys = Object.keys(arr);\n\
 		return arr[keys[parseInt(Math.random() * arr_len(arr) - 1)]];\n\
-	}\n\
+	}\n')) +
+	(useFunction('arr_splice', '\
 	function arr_splice(arr, st, en, els) {\n\
 		var prms = [st];\n\
 		if (exists(en)) prms.push(en);\n\
 		return Array.prototype.splice.apply(arr, prms.concat(els));\n\
-	}\n\
+	}\n')) +
+	(useFunction('arr_pad', '\
 	function arr_pad(src, len, el) {\n\
 		var i, arr = src.slice(0);\n\
 		if(len > 0) for(i = arr_len(arr);i < len;i++) arr.push(el);\n\
 		if(len < 0) for(i = arr_len(arr);i < -len;i++) arr.unshift(el);\n\
 		return arr;\n\
-	}\n\
+	}\n')) +
+	(useFunction('arr_reverse', '\
 	function arr_reverse(src) {\n\
 		var arr = src.slice(0);\n\
 		arr.reverse();\n\
 		return arr;\n\
-	}\n\
+	}\n')) +
+	(useFunction('arr_sort', '\
 	function arr_sort(src) {\n\
 		var arr = src.slice(0);\n\
 		arr.sort();\n\
 		return arr;\n\
-	}\n\
+	}\n')) +
+	(useFunction('arr_sort_reverse', '\
 	function arr_sort_reverse(src) {\n\
 		var arr = src.slice(0);\n\
 		arr.sort();\n\
 		arr.reverse();\n\
 		return arr;\n\
-	}\n\
+	}\n')) +
+	(useFunction('arr_unique', '\
 	function arr_unique(src) {\n\
 		var i, arr = [];\n\
 		for(i in src) if (Object.prototype.hasOwnProperty.call(src, i)) if (!~arr.indexOf(src[i])) arr.push(src[i]);\n\
 		return arr;\n\
-	}\n\
+	}\n')) +
+	(useFunction('arr_key', '\
 	function arr_key(arr, value) {\n\
 		var i;\n\
 		for(i in arr) if (Object.prototype.hasOwnProperty.call(arr, i)) if (value == arr[i]) return i;\n\
 		return -1;\n\
-	}\n\
+	}\n')) + '\
 	var scope = {}\n\
 	var state = {}\n\
 	var childrenAnchor\n\
@@ -274,6 +288,23 @@ module.exports = function (ctx, params) {
 	var ARRAY = 4\n\
 	var EXECUTE = 8\n\
 	var COMPONENT = 16\n\
+	var booleanAttributes = [\n\
+		\'autofocus\',\n\
+		\'autoplay\',\n\
+		\'async\',\n\
+		\'checked\',\n\
+		\'defer\',\n\
+		\'disabled\',\n\
+		\'hidden\',\n\
+		\'loop\',\n\
+		\'multiple\',\n\
+		\'muted\',\n\
+		\'nomodule\',\n\
+		\'open\',\n\
+		\'preload\',\n\
+		\'required\',\n\
+		\'selected\'\n\
+	]\n\
 	var rootElements = []\n\
 	var imports = {\n\
 ' + imports.join(',\n') + '\n\
@@ -340,8 +371,7 @@ module.exports = function (ctx, params) {
 \n\
 		return -1\n\
 	}\n\
-\n\
-	' + addIfModule('async ') + 'function handleArray(parentLayer, layerIndex, iterator) {\n\
+\n' + (ctx.useForEach ? addIfModule('async ') + 'function handleArray(parentLayer, layerIndex, iterator) {\n\
 		var index = 0, layer, preservedIndex, nextSibling, moveElement\n\
 		var usedIndexes = []\n\
 		var unusedIndexes = []\n\
@@ -441,7 +471,7 @@ module.exports = function (ctx, params) {
 \n\
 		return layer.children[index]\n\
 	}\n\
-\n\
+\n' : '') + '\
 	function findLookaheadNode(lookahead, child) {\n\
 		var index\n\
 		var lookaheadNode\n\
@@ -558,35 +588,17 @@ module.exports = function (ctx, params) {
 		return document.createTextNode(value)\n\
 	}\n\
 \n\
-	' + addIfModule('async ') + 'function createScript(attributes, body, layer, lookahead) {\n\
+	' + addIfModule('async ') + 'function createTag(tag, attributes, body, layer, lookahead) {\n\
 		var lookaheadNode\n\
 \n\
 		lookahead.forEach(function (node, index) {\n\
-			if (node.nodeType === 1 && node.nodeName.toLowerCase() === \'script\' && node.innerHTML === body && sameAttributes(attributes, node.attributes)) {\n\
+			if (node.nodeType === 1 && node.nodeName.toLowerCase() === tag && node.innerHTML === body && sameAttributes(attributes, node.attributes)) {\n\
 				lookaheadNode = node\n\
 				lookahead.splice(index, 1)\n\
 			}\n\
 		})\n\
 \n\
-		var element = lookaheadNode || document.createElement(\'script\')\n\
-\n\
-		element.innerHTML = body\n\
-		applyAttributes(element, attributes)\n\
-\n\
-		return [element]\n\
-	}\n\
-\n\
-	' + addIfModule('async ') + 'function createStyle(attributes, body, layer, lookahead) {\n\
-		var lookaheadNode\n\
-\n\
-		lookahead.forEach(function (node, index) {\n\
-			if (node.nodeType === 1 && node.nodeName.toLowerCase() === \'style\' && node.innerHTML === body && sameAttributes(attributes, node.attributes)) {\n\
-				lookaheadNode = node\n\
-				lookahead.splice(index, 1)\n\
-			}\n\
-		})\n\
-\n\
-		var element = lookaheadNode || document.createElement(\'style\')\n\
+		var element = lookaheadNode || document.createElement(tag)\n\
 \n\
 		element.innerHTML = body\n\
 		applyAttributes(element, attributes)\n\
@@ -686,24 +698,14 @@ module.exports = function (ctx, params) {
 		})\n\
 	}\n\
 \n\
-	function insertElement(layer, index, element) {\n\
-		if (layer.anchors[index]) {\n\
-			insertBefore(layer.anchors[index].parentNode, element, layer.anchors[index])\n\
-		} else {\n\
-			mountNode.appendChild(element)\n\
-\n\
-			if (rootElements.indexOf(element) === -1) {\n\
-				rootElements.push(element)\n\
-			}\n\
-		}\n\
-	}\n\
-\n\
 	function insertAfter(element, anchor) {\n\
 		var parent = mountNode\n\
 \n\
 		if (anchor) {\n\
 			parent = anchor.parentNode\n\
-		} else if (rootElements.indexOf(element) === -1) {\n\
+		}\n\
+\n\
+		if (parent === mountNode && rootElements.indexOf(element) === -1) {\n\
 			rootElements.push(element)\n\
 		}\n\
 \n\
