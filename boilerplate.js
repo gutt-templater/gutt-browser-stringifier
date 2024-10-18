@@ -305,6 +305,67 @@ module.exports = function (ctx, params) {
 		\'required\',\n\
 		\'selected\'\n\
 	]\n\
+	var svgTags = [\n\
+		\'animate\',\n\
+		\'animateMotion\',\n\
+		\'animateTransform\',\n\
+		\'circle\',\n\
+		\'clipPath\',\n\
+		\'defs\',\n\
+		\'desc\',\n\
+		\'ellipse\',\n\
+		\'feBlend\',\n\
+		\'feColorMatrix\',\n\
+		\'feComponentTransfer\',\n\
+		\'feComposite\',\n\
+		\'feConvolveMatrix\',\n\
+		\'feDiffuseLighting\',\n\
+		\'feDisplacementMap\',\n\
+		\'feDistantLight\',\n\
+		\'feDropShadow\',\n\
+		\'feFlood\',\n\
+		\'feFuncA\',\n\
+		\'feFuncB\',\n\
+		\'feFuncG\',\n\
+		\'feFuncR\',\n\
+		\'feGaussianBlur\',\n\
+		\'feImage\',\n\
+		\'feMerge\',\n\
+		\'feMergeNode\',\n\
+		\'feMorphology\',\n\
+		\'feOffset\',\n\
+		\'fePointLight\',\n\
+		\'feSpecularLighting\',\n\
+		\'feSpotLight\',\n\
+		\'feTile\',\n\
+		\'feTurbulence\',\n\
+		\'filter\',\n\
+		\'foreignObject\',\n\
+		\'g\',\n\
+		\'image\',\n\
+		\'line\',\n\
+		\'linearGradient\',\n\
+		\'marker\',\n\
+		\'mask\',\n\
+		\'metadata\',\n\
+		\'mpath\',\n\
+		\'path\',\n\
+		\'pattern\',\n\
+		\'polygon\',\n\
+		\'polyline\',\n\
+		\'radialGradient\',\n\
+		\'rect\',\n\
+		\'set\',\n\
+		\'stop\',\n\
+		\'svg\',\n\
+		\'symbol\',\n\
+		\'text\',\n\
+		\'textPath\',\n\
+		\'title\',\n\
+		\'tspan\',\n\
+		\'use\',\n\
+		\'view\'\n\
+	]\n\
 	var rootElements = []\n\
 	var imports = {\n\
 ' + imports.join(',\n') + '\n\
@@ -531,8 +592,16 @@ module.exports = function (ctx, params) {
 		return nodes\n\
 	}\n\
 \n\
+	function createElementNS(tagname) {\n\
+		if (svgTags.indexOf(tagname) > -1) {\n\
+			return document.createElementNS(\'http://www.w3.org/2000/svg\', tagname)\n\
+		}\n\
+\n\
+		return document.createElement(tagname)\n\
+	}\n\
+\n\
 	' + addIfModule('async ') + 'function createElement(nodeType, attributes, children, layer, layerIndex, index, lookaheadNode) {\n\
-		var element = lookaheadNode || document.createElement(nodeType)\n\
+		var element = lookaheadNode || createElementNS(nodeType)\n\
 		var nextSibling\n\
 		var nodes\n\
 \n\
@@ -591,7 +660,7 @@ module.exports = function (ctx, params) {
 			}\n\
 		})\n\
 \n\
-		var element = lookaheadNode || document.createElement(tag)\n\
+		var element = lookaheadNode || createElementNS(tag)\n\
 \n\
 		element.innerHTML = body\n\
 		applyAttributes(element, attributes)\n\
