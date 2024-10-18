@@ -29,7 +29,7 @@ module.exports = {
 	},
 
 	handleAttributes: function (layer, index, attributes) {
-		return 'handleAttributes(layer.attributes[' + layer + '][' + index + '], {\n' + attributes.join(',\n') + '\n})\n'
+		return 'applyAttributes(layer.attributes[' + layer + '][' + index + '].element, {\n' + attributes.join(',\n') + '\n})\n'
 	},
 
 	createObjectItem: function (field, value) {
@@ -42,15 +42,15 @@ module.exports = {
 			layer.lookahead[' + childrenLayer + '] = layer.lookahead[' + layer + ']\n' :
 			''
 		) +
-		'var initialScope = {' + params.join(',') + '}\n\
+		'var props = {' + params.join(',') + '}\n\
 \n\
 		if (!exists(layer.components[' + layer + '])) {\n\
-			var result = ' + (isModule ? 'await ' : '') + 'imports[\'' + name + '\'](layer.anchors[' + layer + '].parentNode, layer.anchors[' + layer + '], initialScope, state, layer.lookahead[' + layer + '][0]' +
+			var result = ' + (isModule ? 'await ' : '') + 'imports[\'' + name + '\'](layer.anchors[' + layer + '].parentNode, layer.anchors[' + layer + '], props, state, layer.lookahead[' + layer + '][0]' +
 			(typeof childrenLayer !== 'undefined' ? ', anchor' : '')+ ') \n\
 			layer.components[' + layer + '] = result.setState\n\
 			layer.elements[' + layer + '] = result.elements\n\
 		} else {\n\
-			layer.elements[' + layer + '] = layer.components[' + layer + '](initialScope, state)\n\
+			layer.elements[' + layer + '] = layer.components[' + layer + '](props, state)\n\
 			\n\
 		}\n'
 	},
@@ -61,15 +61,15 @@ module.exports = {
 			layer.lookahead[' + childrenLayer + '] = layer.lookahead[' + layer + ']\n' :
 			''
 		) +
-		'var initialScope = {' + params.join(',') + '}\n\
+		'var props = {' + params.join(',') + '}\n\
 \n\
 		if (!exists(layer.components[' + layer + '])) {\n\
-			var result = ' + (isModule ? 'await ' : '') + 'main(layer.anchors[' + layer + '].parentNode, layer.anchors[' + layer + '], initialScope, state, layer.lookahead[' + layer + '][0]' +
+			var result = ' + (isModule ? 'await ' : '') + 'main(layer.anchors[' + layer + '].parentNode, layer.anchors[' + layer + '], props, state, layer.lookahead[' + layer + '][0]' +
 			(typeof childrenLayer !== 'undefined' ? ', anchor' : '')+ ') \n\
 			layer.components[' + layer + '] = result.setState\n\
 			layer.elements[' + layer + '] = result.elements\n\
 		} else {\n\
-			layer.elements[' + layer + '] = layer.components[' + layer + '](initialScope, state)\n\
+			layer.elements[' + layer + '] = layer.components[' + layer + '](props, state)\n\
 			\n\
 		}\n'
 	},

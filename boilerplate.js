@@ -279,8 +279,9 @@ module.exports = function (ctx, params) {
 		for(i in arr) if (Object.prototype.hasOwnProperty.call(arr, i)) if (value == arr[i]) return i;\n\
 		return -1;\n\
 	}\n')) + '\
+	var state = {} // global parameters\n\
+	var parameters = {}\n\
 	var scope = {}\n\
-	var state = {}\n\
 	var childrenAnchor\n\
 	var lookahead\n\
 	var ATTRIBUTES = 1\n\
@@ -303,7 +304,9 @@ module.exports = function (ctx, params) {
 		\'open\',\n\
 		\'preload\',\n\
 		\'required\',\n\
-		\'selected\'\n\
+		\'selected\',\n\
+		\'value\',\n\
+		\'contentEditable\'\n\
 	]\n\
 	var svgTags = [\n\
 		\'animate\',\n\
@@ -375,16 +378,6 @@ module.exports = function (ctx, params) {
 	}\n\
 	var layers = {\n\
 		0: createLayer()\n\
-	}\n\
-\n\
-	if (arguments.length === 2) {\n\
-		state = arguments[1]\n\
-	} else if (arguments.length > 2) {\n\
-		layers[0].anchors[0] = arguments[1]\n\
-		scope = arguments[2]\n\
-		state = arguments[3]\n\
-		lookahead = arguments[4]\n\
-		childrenAnchor = arguments[5]\n\
 	}\n\
 \n\
 	var instructions = {\n\
@@ -605,7 +598,7 @@ module.exports = function (ctx, params) {
 		var nextSibling\n\
 		var nodes\n\
 \n\
-		applyAttributes(element, attributes)\n\
+		setAttributes(element, attributes)\n\
 \n\
 		if (!exists(layer.attributes[layerIndex])) {\n\
 			layer.attributes[layerIndex] = {}\n\
@@ -663,7 +656,7 @@ module.exports = function (ctx, params) {
 		var element = lookaheadNode || createElementNS(tag)\n\
 \n\
 		element.innerHTML = body\n\
-		applyAttributes(element, attributes)\n\
+		setAttributes(element, attributes)\n\
 \n\
 		return [element]\n\
 	}\n\
@@ -701,27 +694,51 @@ module.exports = function (ctx, params) {
 \n\
 	function applyAttributes(element, attributes) {\n\
 		forEach(attributes, function (value, attribute) {\n\
-			element.setAttribute(attribute, value)\n\
+			setAttribute(element, attribute, value)\n\
 		})\n\
 	}\n\
 \n\
-	function handleAttributes(layerAttributes, attributes) {\n\
+	function setAttributes(element, attributes) {\n\
+		var currentAttributes = element.getAttributeNames()\n\
+		var usedAttributes = []\n\
+\n\
 		forEach(attributes, function (value, attribute) {\n\
-			if (booleanAttributes.indexOf(attribute) !== -1) {\n\
-				layerAttributes.element[attribute] = value\n\
+			if (setAttribute(element, attribute, value)) {\n\
+				usedAttributes.push(attribute)\n\
+			}\n\
+		})\n\
+\n\
+		forEach(currentAttributes, function (attribute) {\n\
+			if (usedAttributes.indexOf(attribute) === -1 && element.hasAttribute(attribute)) {\n\
+				element.removeAttribute(attribute)\n\
+			}\n\
+		})\n\
+	}\n\
+\n\
+	function setAttribute(element, attribute, value) {\n\
+		var formattedValue = value === true ? \'\' : value\n\
+\n\
+		if (booleanAttributes.indexOf(attribute) !== -1) {\n\
+			element[attribute] = value\n\
+\n\
+			return true\n\
+		}\n\
+\n\
+		if (!exists(value) || value === null || value === false) {\n\
+			if (element.hasAttribute(attribute)) {\n\
+				element.removeAttribute(attribute)\n\
 			} else {\n\
-				layerAttributes.element.setAttribute(attribute, value || \'\')\n\
+				return true\n\
+			}\n\
+		} else {\n\
+			if (element.getAttribute(attribute) !== formattedValue) {\n\
+				element.setAttribute(attribute, formattedValue)\n\
 			}\n\
 \n\
-			layerAttributes.cache[attribute] = true\n\
-		})\n\
+			return true\n\
+		}\n\
 \n\
-		forEach(layerAttributes.cache, function (value, attribute) {\n\
-			if (!exists(attributes[attribute])) {\n\
-				layerAttributes.element.removeAttribute(attribute)\n\
-				delete attributes[attribute]\n\
-			}\n\
-		})\n\
+		return false\n\
 	}\n\
 \n\
 	function handleTextNode(layer, index, content) {\n\
@@ -862,28 +879,21 @@ module.exports = function (ctx, params) {
 		})\n\
 	}\n\
 \n\
-	if (exists(templates[0]) && exists(layers[0])) {\n\
-		' + addIfModule('var componentNames = Object.keys(imports)\n\
-		var modules = ' + addIfModule('await ') + 'Promise.all(Object.values(imports))\n\
+	function setState(props) {\n\
+		var field\n\
 \n\
-		imports = modules.map(function (module) { return module.default })\n\
-			.reduce(function (result, module, index) {\n\
-				result[componentNames[index]] = module\n\
-				return result\n\
-			}, {})\n\
-		') + '\n\
-		layers[0].lookahead[0] = { 0: lookahead ? lookahead : copy(mountNode.childNodes) }\n\
-		' + addIfModule('await ') + 'templates[0](layers[0])\n\
-		' + addIfModule('await ') + 'removeLookahead(layers[0])\n\
-	}\n\
+		for (field in (props || {})) {\n\
+			if (props.hasOwnProperty(field) && scope[field] !== props[field]) {\n\
+				scope[field] = props[field]\n\
+			}\n\
+		}\n\
 \n\
-	function setState(data) {\n\
 		if (arguments.length === 2) {\n\
-			scope = data\n\
-			state = arguments[1]\n\
+			parameters = Object.assign({}, props)\n\
+			state = Object.assign({}, arguments[1])\n\
 		} else {\n\
-			scope = {}\n\
-			state = data\n\
+			parameters = Object.assign({}, props)\n\
+			state = Object.assign({}, props)\n\
 		}\n\
 \n\
 		if (exists(templates[0]) && exists(layers[0])) {\n\
@@ -893,7 +903,62 @@ module.exports = function (ctx, params) {
 		return rootElements\n\
 	}\n\
 \n\
-	if (arguments.length === 2) {\n\
+	if (arguments.length <= 2) {\n\
+		parameters = Object.assign({}, arguments[1])\n\
+		state = Object.assign({}, parameters)\n\
+		scope = Object.assign({}, parameters)\n\
+	} else if (arguments.length > 2) {\n\
+		layers[0].anchors[0] = arguments[1]\n\
+		parameters = Object.assign({}, arguments[2])\n\
+		state = Object.assign({}, arguments[3])\n\
+		lookahead = arguments[4]\n\
+		childrenAnchor = arguments[5]\n\
+		scope = Object.assign({}, parameters)\n\
+	}\n\
+\n\
+	if (!window.$guttStates) {\n\
+		window.$guttStates = new Map()\n\
+	}\n\
+\n\
+	if (!window.$getState) {\n\
+		window.$getState = function (node) {\n\
+			return window.$guttStates.get(Symbol.for(node))\n\
+		}\n\
+	}\n\
+\n\
+	if (exists(templates[0]) && exists(layers[0])) {\n' +
+		addIfModule('var componentNames = Object.keys(imports)\n\
+		var modules = ' + addIfModule('await ') + 'Promise.all(Object.values(imports))\n\
+\n\
+		imports = modules.map(function (module) { return module.default })\n\
+			.reduce(function (result, module, index) {\n\
+				result[componentNames[index]] = module\n\
+				return result\n\
+			}, {})\n\
+		') + '\
+		layers[0].lookahead[0] = { 0: lookahead ? lookahead : copy(mountNode.childNodes) }\n\
+		' + addIfModule('await ') + 'templates[0](layers[0])\n\
+		' + addIfModule('await ') + 'removeLookahead(layers[0])\n\
+	}\n\
+\n\
+	if (rootElements.length) {\n\
+		rootElements[0].addEventListener(\'set-parameter\', function (event) {\n\
+			var payload = event.detail || {}\n\
+			var key\n\
+\n\
+			for (key in payload) {\n\
+				if (payload.hasOwnProperty(key)) {\n\
+					scope[key] = payload[key]\n\
+				}\n\
+			}\n\
+\n\
+			setState(scope, state)\n\
+		})\n\
+\n\
+		window.$guttStates.set(Symbol.for(rootElements[0]), scope)\n\
+	}\n\
+\n\
+	if (arguments.length <= 2) {\n\
 		return setState\n\
 	} else {\n\
 		return { setState: setState, elements: rootElements }\n\
