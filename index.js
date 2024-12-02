@@ -523,7 +523,7 @@ function handleSelfStatement(node, templateIndex, instructionIndex, ctx) {
 }
 
 function escapeString(text) {
-  return text.replace(/\n/g, '\\n').replace(/\'/g, '\\\'')
+  return text.replace(/\r/g, '').replace(/\n/g, '\\n').replace(/\'/g, '\\\'')
 }
 
 function handleText(node) {
