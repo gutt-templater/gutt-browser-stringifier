@@ -827,12 +827,13 @@ module.exports = function (ctx, params) {
 			case TEXT_NODE:\n\
 				delete layer.textCache[index]\n\
 			default:\n\
-				layer.elements[index].forEach(removeElement)\n\
-				delete layer.elements[index]\n\
-\n\
 				if (type === COMPONENT) {\n\
 					delete layer.components[index]\n\
+					window.$guttStates.delete(layer.elements[index][0])\n\
 				}\n\
+\n\
+				layer.elements[index].forEach(removeElement)\n\
+				delete layer.elements[index]\n\
 		}\n\
 	}\n\
 \n\
@@ -922,7 +923,7 @@ module.exports = function (ctx, params) {
 \n\
 	if (!window.$getState) {\n\
 		window.$getState = function (node) {\n\
-			return window.$guttStates.get(Symbol.for(node))\n\
+			return window.$guttStates.get(node)\n\
 		}\n\
 	}\n\
 \n\
@@ -952,10 +953,10 @@ module.exports = function (ctx, params) {
 				}\n\
 			}\n\
 \n\
-			setState(scope, state)\n\
+			setState(scope, parameters)\n\
 		})\n\
 \n\
-		window.$guttStates.set(Symbol.for(rootElements[0]), scope)\n\
+		window.$guttStates.set(rootElements[0], scope)\n\
 	}\n\
 \n\
 	if (arguments.length <= 2) {\n\
