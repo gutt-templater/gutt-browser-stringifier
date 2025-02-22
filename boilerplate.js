@@ -280,7 +280,6 @@ module.exports = function (ctx, params) {
 		return -1;\n\
 	}\n')) + '\
 	var state = {} // global parameters\n\
-	var parameters = {}\n\
 	var scope = {}\n\
 	var childrenAnchor\n\
 	var lookahead\n\
@@ -881,21 +880,17 @@ module.exports = function (ctx, params) {
 	}\n\
 \n\
 	function setState(props) {\n\
-		var field\n\
-\n\
-		for (field in (props || {})) {\n\
-			if (props.hasOwnProperty(field) && scope[field] !== props[field]) {\n\
-				scope[field] = props[field]\n\
-			}\n\
-		}\n\
-\n\
+		// component setState\n\
 		if (arguments.length === 2) {\n\
-			parameters = Object.assign({}, props)\n\
+			scope = Object.assign({}, props)\n\
 			state = Object.assign({}, arguments[1])\n\
+		// root setState\n\
 		} else {\n\
-			parameters = Object.assign({}, props)\n\
+			scope = {}\n\
 			state = Object.assign({}, props)\n\
 		}\n\
+\n\
+		window.$guttStates.set(rootElements[0], scope)\n\
 \n\
 		if (exists(templates[0]) && exists(layers[0])) {\n\
 			templates[0](layers[0])\n\
@@ -904,17 +899,18 @@ module.exports = function (ctx, params) {
 		return rootElements\n\
 	}\n\
 \n\
+	// root mounting\n\
 	if (arguments.length <= 2) {\n\
-		parameters = Object.assign({}, arguments[1])\n\
-		state = Object.assign({}, parameters)\n\
-		scope = Object.assign({}, parameters)\n\
+		scope = Object.assign({}, arguments[1])\n\
+		state = Object.assign({}, arguments[1])\n\
+	// component mounting\n\
 	} else if (arguments.length > 2) {\n\
-		layers[0].anchors[0] = arguments[1]\n\
-		parameters = Object.assign({}, arguments[2])\n\
+		scope = Object.assign({}, arguments[2])\n\
 		state = Object.assign({}, arguments[3])\n\
+\n\
+		layers[0].anchors[0] = arguments[1]\n\
 		lookahead = arguments[4]\n\
 		childrenAnchor = arguments[5]\n\
-		scope = Object.assign({}, parameters)\n\
 	}\n\
 \n\
 	if (!window.$guttStates) {\n\
@@ -953,7 +949,11 @@ module.exports = function (ctx, params) {
 				}\n\
 			}\n\
 \n\
-			setState(scope, parameters)\n\
+			window.$guttStates.set(rootElements[0], scope)\n\
+\n\
+			if (exists(templates[0]) && exists(layers[0])) {\n\
+				templates[0](layers[0])\n\
+			}\n\
 		})\n\
 \n\
 		window.$guttStates.set(rootElements[0], scope)\n\
