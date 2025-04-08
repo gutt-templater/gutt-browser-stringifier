@@ -80,6 +80,6 @@ module.exports = {
 		return 'var temp = createElementNS(\'div\')\n' +
 			'var children = ' + (isModule ? 'await ' : '') + 'createNodes([' + children + '], [])\n' +
 			'forEach(children, function(child) { temp.appendChild(child) })\n' +
-			'if (document.title !== temp.outerText) document.title = temp.outerText;'
+			'document.title = temp.outerText;'
 	}
 }
