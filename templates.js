@@ -36,42 +36,12 @@ module.exports = {
 		return field + ': ' + value
 	},
 
-	componentInstuction: function (layer, name, params, isModule, childrenLayer) {
-		return (typeof childrenLayer !== 'undefined' ?
-			'var anchor = createAnchor(layer, ' + childrenLayer + ')\n\
-			layer.lookahead[' + childrenLayer + '] = layer.lookahead[' + layer + ']\n' :
-			''
-		) +
-		'var props = {' + params.join(',') + '}\n\
-\n\
-		if (!exists(layer.components[' + layer + '])) {\n\
-			var result = ' + (isModule ? 'await ' : '') + 'imports[\'' + name + '\'](layer.anchors[' + layer + '].parentNode, layer.anchors[' + layer + '], props, state, layer.lookahead[' + layer + '][0]' +
-			(typeof childrenLayer !== 'undefined' ? ', anchor' : '')+ ') \n\
-			layer.components[' + layer + '] = result.setState\n\
-			layer.elements[' + layer + '] = result.elements\n\
-		} else {\n\
-			layer.elements[' + layer + '] = layer.components[' + layer + '](props, state)\n\
-			\n\
-		}\n'
+	componentInstuction: function (layer, name, params, childrenLayer) {
+		return 'handleComponent(imports[\'' + name + '\'], layer, ' + layer + ', {' + params.join(',') + '}' + (typeof childrenLayer !== 'undefined' ? ', ' + childrenLayer : '') + ')'
 	},
 
-	selfInstuction: function (layer, name, params, isModule, childrenLayer) {
-		return (typeof childrenLayer !== 'undefined' ?
-			'var anchor = createAnchor(layer, ' + childrenLayer + ')\n\
-			layer.lookahead[' + childrenLayer + '] = layer.lookahead[' + layer + ']\n' :
-			''
-		) +
-		'var props = {' + params.join(',') + '}\n\
-\n\
-		if (!exists(layer.components[' + layer + '])) {\n\
-			var result = ' + (isModule ? 'await ' : '') + 'main(layer.anchors[' + layer + '].parentNode, layer.anchors[' + layer + '], props, state, layer.lookahead[' + layer + '][0]' +
-			(typeof childrenLayer !== 'undefined' ? ', anchor' : '')+ ') \n\
-			layer.components[' + layer + '] = result.setState\n\
-			layer.elements[' + layer + '] = result.elements\n\
-		} else {\n\
-			layer.elements[' + layer + '] = layer.components[' + layer + '](props, state)\n\
-			\n\
-		}\n'
+	selfInstuction: function (layer, params, childrenLayer) {
+		return 'handleComponent(main, layer, ' + layer + ', {' + params.join(',') + '}' + (typeof childrenLayer !== 'undefined' ? ', ' + childrenLayer : '') + ')'
 	},
 
 	handleTextNode: function (index, content) {
@@ -89,7 +59,7 @@ module.exports = {
 	useStateStatement: function (nameExprValue, name, value) {
 		return (
 			value.length
-				? 'if (typeof state[\'' + nameExprValue + '\'] === \'undefined\') ' +
+				? 'if (!exists(state[\'' + nameExprValue + '\'])) ' +
 					this.assertion(
 						name,
 						value
@@ -99,10 +69,17 @@ module.exports = {
 	},
 
 	executeInstruction: function (name, value) {
-		return 'if (typeof ' + name + ' === \'undefined\') ' +
+		return 'if (!exists(' + name + ')) ' +
 			this.assertion(
 				name,
 				value
 			)
+	},
+
+	titleInstruction: function (children, isModule) {
+		return 'var temp = createElementNS(\'div\')\n' +
+			'var children = ' + (isModule ? 'await ' : '') + 'createNodes([' + children + '], [])\n' +
+			'forEach(children, function(child) { temp.appendChild(child) })\n' +
+			'if (document.title !== temp.outerText) document.title = temp.outerText;'
 	}
 }

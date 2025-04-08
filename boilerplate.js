@@ -58,7 +58,7 @@ module.exports = function (ctx, params) {
 
 	for (field in ctx.executeInstructions) {
 		if (ctx.executeInstructions.hasOwnProperty(field)) {
-			instructions[field] = field + ': function (layer) {\n\
+			instructions[field] = field + ': ' + addIfModule('async ') + 'function (layer) {\n\
 				' + ctx.executeInstructions[field] + '\n\
 			}'
 		}
@@ -87,6 +87,86 @@ module.exports = function (ctx, params) {
 			)
 		}
 	}
+
+	var booleanAttributes = [
+		'autofocus',
+		'autoplay',
+		'async',
+		'checked',
+		'defer',
+		'disabled',
+		'hidden',
+		'loop',
+		'multiple',
+		'muted',
+		'nomodule',
+		'open',
+		'preload',
+		'required',
+		'selected',
+		'value',
+		'contentEditable'
+	]
+	var svgNodeNames = [
+		'animate',
+		'animateMotion',
+		'animateTransform',
+		'circle',
+		'clipPath',
+		'defs',
+		'desc',
+		'ellipse',
+		'feBlend',
+		'feColorMatrix',
+		'feComponentTransfer',
+		'feComposite',
+		'feConvolveMatrix',
+		'feDiffuseLighting',
+		'feDisplacementMap',
+		'feDistantLight',
+		'feDropShadow',
+		'feFlood',
+		'feFuncA',
+		'feFuncB',
+		'feFuncG',
+		'feFuncR',
+		'feGaussianBlur',
+		'feImage',
+		'feMerge',
+		'feMergeNode',
+		'feMorphology',
+		'feOffset',
+		'fePointLight',
+		'feSpecularLighting',
+		'feSpotLight',
+		'feTile',
+		'feTurbulence',
+		'filter',
+		'foreignObject',
+		'g',
+		'image',
+		'line',
+		'linearGradient',
+		'marker',
+		'mask',
+		'metadata',
+		'mpath',
+		'path',
+		'pattern',
+		'polygon',
+		'polyline',
+		'radialGradient',
+		'rect',
+		'set',
+		'stop',
+		'svg',
+		'symbol',
+		'text',
+		'textPath',
+		'tspan',
+		'use',
+		'view'
+	]
 
 	return 'const main = ' + addIfModule('async ') + 'function main(mountNode) {\n\
 	function exists(e) {\n\
@@ -289,84 +369,18 @@ module.exports = function (ctx, params) {
 	var EXECUTE = 8\n\
 	var COMPONENT = 16\n\
 	var booleanAttributes = [\n\
-		\'autofocus\',\n\
-		\'autoplay\',\n\
-		\'async\',\n\
-		\'checked\',\n\
-		\'defer\',\n\
-		\'disabled\',\n\
-		\'hidden\',\n\
-		\'loop\',\n\
-		\'multiple\',\n\
-		\'muted\',\n\
-		\'nomodule\',\n\
-		\'open\',\n\
-		\'preload\',\n\
-		\'required\',\n\
-		\'selected\',\n\
-		\'value\',\n\
-		\'contentEditable\'\n\
+		' + booleanAttributes.filter(function (attr) {
+			return ctx.usedAttributes.indexOf(attr) > -1
+		}).map(function(attr) {
+			return '\'' + attr + '\''
+		}).join(',\n') + '\n\
 	]\n\
 	var svgTags = [\n\
-		\'animate\',\n\
-		\'animateMotion\',\n\
-		\'animateTransform\',\n\
-		\'circle\',\n\
-		\'clipPath\',\n\
-		\'defs\',\n\
-		\'desc\',\n\
-		\'ellipse\',\n\
-		\'feBlend\',\n\
-		\'feColorMatrix\',\n\
-		\'feComponentTransfer\',\n\
-		\'feComposite\',\n\
-		\'feConvolveMatrix\',\n\
-		\'feDiffuseLighting\',\n\
-		\'feDisplacementMap\',\n\
-		\'feDistantLight\',\n\
-		\'feDropShadow\',\n\
-		\'feFlood\',\n\
-		\'feFuncA\',\n\
-		\'feFuncB\',\n\
-		\'feFuncG\',\n\
-		\'feFuncR\',\n\
-		\'feGaussianBlur\',\n\
-		\'feImage\',\n\
-		\'feMerge\',\n\
-		\'feMergeNode\',\n\
-		\'feMorphology\',\n\
-		\'feOffset\',\n\
-		\'fePointLight\',\n\
-		\'feSpecularLighting\',\n\
-		\'feSpotLight\',\n\
-		\'feTile\',\n\
-		\'feTurbulence\',\n\
-		\'filter\',\n\
-		\'foreignObject\',\n\
-		\'g\',\n\
-		\'image\',\n\
-		\'line\',\n\
-		\'linearGradient\',\n\
-		\'marker\',\n\
-		\'mask\',\n\
-		\'metadata\',\n\
-		\'mpath\',\n\
-		\'path\',\n\
-		\'pattern\',\n\
-		\'polygon\',\n\
-		\'polyline\',\n\
-		\'radialGradient\',\n\
-		\'rect\',\n\
-		\'set\',\n\
-		\'stop\',\n\
-		\'svg\',\n\
-		\'symbol\',\n\
-		\'text\',\n\
-		\'textPath\',\n\
-		\'title\',\n\
-		\'tspan\',\n\
-		\'use\',\n\
-		\'view\'\n\
+		' + svgNodeNames.filter(function (nodeName) {
+			return ctx.usedNodes.indexOf(nodeName) > -1
+		}).map(function (nodeName) {
+			return '\'' + nodeName + '\''
+		}).join(',\n') + '\n\
 	]\n\
 	var rootElements = []\n\
 	var imports = {\n\
@@ -424,7 +438,20 @@ module.exports = function (ctx, params) {
 \n\
 		return -1\n\
 	}\n\
-\n' + (ctx.useForEach ? addIfModule('async ') + 'function handleArray(parentLayer, layerIndex, iterator) {\n\
+	' + (Object.keys(ctx.componentInstuctions).length ? addIfModule('async ') + 'function handleComponent(component, layer, layerIndex, props, childrenLayer) {\n\
+		if (exists(childrenLayer)) {\n\
+			layer.lookahead[childrenLayer] = layer.lookahead[layerIndex]\n\
+		}\n\
+\n\
+		if (!exists(layer.components[layerIndex])) {\n\
+			var result = ' + addIfModule('await ') + 'component(layer.anchors[layerIndex].parentNode, layer.anchors[layerIndex], props, state, layer.lookahead[layerIndex][0], exists(childrenLayer) ? createAnchor(layer, childrenLayer) : void 0)\n\
+			layer.components[layerIndex] = result.setState\n\
+			layer.elements[layerIndex] = result.elements\n\
+		} else {\n\
+			layer.elements[layerIndex] = layer.components[layerIndex](props, state)\n\
+		}\n\
+	}' : '') + '\n\
+	' + (ctx.useForEach ? addIfModule('async ') + 'function handleArray(parentLayer, layerIndex, iterator) {\n\
 		var index = 0, layer, preservedIndex, nextSibling, moveElement\n\
 		var usedIndexes = []\n\
 		var unusedIndexes = []\n\

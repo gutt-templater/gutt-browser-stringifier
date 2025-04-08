@@ -1,0 +1,28 @@
+<use-state name={$title} value="" />
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title lang="ru" data-title={$title}>
+		{$title}
+		<for-each item={$i} from={[0..10]}>
+			{$i}
+		</for-each>
+	</title>
+</head>
+<body>
+	<h1>Gutt browser stringifier playground</h1>
+
+	<script type="module">
+		const { default: pageTemplate } = await import('./title.gutt.js')
+
+		const setState = await pageTemplate(document, { title: 'Title' })
+
+		setTimeout(() => {
+			setState({ title: 'New title' })
+		}, 2000)
+	</script>
+</body>
+</html>
