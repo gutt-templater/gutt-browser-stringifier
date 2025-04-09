@@ -28,14 +28,14 @@ function handleDefaultTag(node, templateIndex, instructionIndex, ctx) {
 	)
 }
 
-function lightWalkForTitle(current, ctx) {
+function lightWalkForAssertion(current, ctx) {
 	var children = []
 
 	while (current) {
 		if (current.type === 'text') {
 			children.push(handleText(current))
 		} else if (current.type === 'logic-node') {
-			children.push(logicHandler(current, ctx))
+			children.push('String(' + logicHandler(current, ctx) + ')')
 		}
 
 		current = current.nextSibling
@@ -44,13 +44,14 @@ function lightWalkForTitle(current, ctx) {
 	return children.filter(Boolean).join(',\n')
 }
 
-function handleTitleTag(node, templateIndex, instructionIndex, ctx) {
+function handleAssertionTag(node, templateIndex, instructionIndex, ctx) {
 	var result = handleTagAttrs(node, templateIndex, instructionIndex, ctx)
 	var staticAttributes = result[0]
 	var index = result[1]
 	var nextInstructionIndex = ++ctx.index
-	var children = lightWalkForTitle(node.firstChild, ctx)
-	var instruction = templates.titleInstruction(children, ctx.params.type === 'module')
+	var children = lightWalkForAssertion(node.firstChild, ctx)
+	var assertion = node.name === 'title' ? 'document.title' : 'layer.attributes[' + instructionIndex + '][' + index + '].element.value'
+	var instruction = templates.assertInstruction(children, assertion, ctx.params.type === 'module')
 
 	ctx.executeInstructions[nextInstructionIndex] = instruction
 	ctx.dynamicNodes[nextInstructionIndex] = 'EXECUTE'
@@ -515,8 +516,8 @@ function handleTag(node, templateIndex, instructionIndex, ctx) {
 				return handleComponent(node, templateIndex, instructionIndex, ctx)
 			}
 
-			if (node.name.toLowerCase() === 'title') {
-				return handleTitleTag(node, templateIndex, instructionIndex, ctx)
+			if (['title', 'textarea'].indexOf(node.name.toLowerCase()) !== -1) {
+				return handleAssertionTag(node, templateIndex, instructionIndex, ctx)
 			}
 
 			return handleDefaultTag(node, templateIndex, instructionIndex, ctx)

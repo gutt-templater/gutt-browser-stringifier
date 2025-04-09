@@ -76,10 +76,10 @@ module.exports = {
 			)
 	},
 
-	titleInstruction: function (children, isModule) {
+	assertInstruction: function (children, assertion, isModule) {
 		return 'var temp = createElementNS(\'div\')\n' +
 			'var children = ' + (isModule ? 'await ' : '') + 'createNodes([' + children + '], [])\n' +
-			'forEach(children, function(child) { temp.appendChild(child) })\n' +
-			'document.title = temp.outerText;'
+			(isModule ? 'await ' : '') + 'forEach(children, function(child) { temp.appendChild(child) })\n' +
+			assertion + ' = temp.outerText;'
 	}
 }

@@ -1,0 +1,29 @@
+<use-state name={$value} value="" />
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Document</title>
+</head>
+<body>
+	<h1>Gutt browser stringifier playground</h1>
+
+	<for-each item={$item} from={[1..4]}>
+		<textarea>
+			{$value} {$item}
+		</textarea>
+	</for-each>
+
+	<script type="module">
+		const { default: pageTemplate } = await import('./textarea.gutt.js')
+
+		const setState = await pageTemplate(document, { value: 'Value' })
+
+		setTimeout(() => {
+			setState({ value: 'New title' })
+		}, 2000)
+	</script>
+</body>
+</html>
